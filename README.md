@@ -1,65 +1,52 @@
-PrinterHead Firmware
+Printer head firmware protocol
 
-##PrinterHead Xcode command:
-```
-A                                                                            : PID Autotune
-ok@A
+* 取得基本狀態
 
-H + O + num (0 ~ 2625)                                                       : set heater temp
-ok@HO+num
+? `1 HELLO *[CHKSUM]\n`
 
-H + F                                                                        : set heater off
-ok@HF
+? `1 OK HELLO TYPE:EXTRUDER ID:3f1f2a VENDOR:flux\ .inc FIRMWARE:xxxxxx VERSION:0.1.9 EXTRUDER:1 MAX_TEMPERATURE:250 *[CHKSUM]\n`
 
-F + 1(Fan1) + num (0 ~ 255)                                                  : set fan1 duty
-ok@F1+num
+? `1 PING *[CHKSUM]\n`
 
-F + 2(Fan2) + O                                                              : set fan2 on
-ok@F2O
+? `1 OK PONG 1 ER:0 RT:123.3,212.3 TT:200.0,230.0 FA:255 *[CHKSUM]\n` (for extruder)
 
-F + 2(Fan2) + F                                                              : set fan2 off
-ok@F2F
+? `1 OK PONG 1 ER:0 *[CHKSUM]\n` (for laser)
 
-W + num                                                                      : write device id
-ok@W
+Note: PONG 1=有HELLO過, RT = real temp, TT = target temp, FA = fan speed (0~255), ER: 錯誤代碼, 0=無
 
-R + (A,C,E,I,M,T,V)                                                          : read board info (A:all, C:cmd list I:device id, M:module, T:read temp V:fw version)
-ok@RA
-ok@RC
-ok@RE
-ok@RI
-ok@RM
-ok@RT : + degree
-ok@RV
+Note2:if TT:NAN that is target temperature had not been setted
 
-K
-ok@K
-                                                                            : sensor calibration
-S + (A,G)                                                                    : read sensor raw data
-ok@S_A
-ok@S_G
+* 溫度控制
 
-Q                                                                            : clear flag
-ok@Q
+? `1 H:1 T:200.0 *[CHKSUM]\n`  or number or NAN
+
+? `1 OK HEATER *[CHKSUM]\n`
+
+* 風扇控制
+
+? `1 F:1 S:255 *[CHKSUM]\n` (0~255) 強度
+
+? `1 OK FAN *[CHKSUM]\n`
+
+* ERROR CODE
 
 
-Event	1	Boot Success
-	2	Fan2 Failure
-	3	Fan3 Failure
-	4	Sensor Connection Success
-	5	Sensor Connection Failure
-	6	Sensor Gyro_x failure
-	7	Sensor Gyro_y failure
-	8	Sensor Gyro_z failure
-	9	Sensor Accelerometer_x failure
-	10	Sensor Accelerometer_y failure
-	11	Sensor Accelerometer_z failure
-	12	ID 0 failure
-	13	ID 1 failure
-	14	Over temperature
-	15	Device write success
-	16	Device write fail
-	17	Heater On
-	18	Heater Off
+? `1 ER:0 UNKNOW_COMMAND\n`
 
-```
+? `1 ER:1 WRONG_NO_PARM\n`
+
+? `1 ER:2 PARAM_OUT_OF_RANGE\n`
+
+? `1 ER:3 COMMAND_CANNOT_BE_PROCESSSED\n`
+
+? `1 ER:4 UNKNOW_MODULE\n`
+
+? `1 ER:5 SENSOR_FAILED\n`
+
+? `1 ER:6 NO_HELLO\n`
+
+? `1 ER:7 SHAKE\n`
+
+? `1 ER:8 TILT\n`
+
+Note: ER:0~3 is general response,all commands must be respond.ER:4~8 is only responded by PONG.
