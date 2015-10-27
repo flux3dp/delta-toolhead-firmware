@@ -56,4 +56,4 @@ Note2:if TT:NAN that is target temperature had not been setted
 
 ⇠ `1 ER:10 Fan do not work\n`
 
-Note: ER:0~3 is general error response,all commands could respond.ER:4~10 is only responded by PONG.
+Note: ER:0~3 are general error responses,all commands could respond.ER:4~10 are only responded by PONG.
