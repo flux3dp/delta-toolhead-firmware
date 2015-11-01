@@ -115,8 +115,8 @@ typedef struct
 */
 
 
-#define PID_MAX 255
-#define PID_MIN 0
+//#define PID_MAX 255.0
+//#define PID_MIN 0.0
 
 #if 0
 //Define Variables we'll be connecting to

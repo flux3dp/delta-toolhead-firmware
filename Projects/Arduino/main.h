@@ -30,37 +30,16 @@
 #define __MAIN_H
 
 /* Includes ------------------------------------------------------------------*/
-#include "utilities.h"
-#include "setup.h"
-//#include "loop.h"
-#include "lsm6ds3.h"
-#include "lis302dl.h"
-//#include "PID_v1.h"
 #include <stdio.h>
 #include <string.h>
-//#include "timeb.h"
-//#include "const.h"
 #include "command.h"
 #include "configuration.h"
 #include "uart.h"
 #include "Six_Axis_Sensor.h"
-
-#if 0
-#include "stdio.h"
-#include "stdlib.h"
-#include "string.h"
-#include "stm32f0xx_conf.h"
+#include "heater.h"
+#include "fan.h"
+#include "defines.h"
 #include "utilities.h"
-#include "serial.h"
-#include "gpio.h"
-
-#include <rt_misc.h>
-#pragma import(__use_no_semihosting_swi)
-struct __FILE { int handle; /* Add whatever you need here */ };
-FILE __stdout;
-FILE __stdin;
-#endif
-
 /* Exported constants --------------------------------------------------------*/
 /* Exported macros -----------------------------------------------------------*/
 /* typedef -------------------------------------------------------------------*/
@@ -68,6 +47,6 @@ FILE __stdin;
 
 #endif /* __MAIN_H */
 
-/************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
+/************************ (C) COPYRIGHT FLUX *****END OF FILE****/
 
 

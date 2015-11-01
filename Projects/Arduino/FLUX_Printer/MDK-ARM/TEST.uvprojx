@@ -507,14 +507,14 @@
           <GroupName>Arduino</GroupName>
           <Files>
             <File>
-              <FileName>serial.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\..\..\Libraries\Arduino\src\serial.c</FilePath>
-            </File>
-            <File>
               <FileName>gpio.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\..\..\Libraries\Arduino\src\gpio.c</FilePath>
+            </File>
+            <File>
+              <FileName>serial.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\..\..\Libraries\Arduino\src\serial.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -585,6 +585,11 @@
               <FileName>Six_Axis_Sensor.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\Six_Axis_Sensor.c</FilePath>
+            </File>
+            <File>
+              <FileName>fan.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\fan.c</FilePath>
             </File>
           </Files>
         </Group>

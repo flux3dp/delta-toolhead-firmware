@@ -8,9 +8,11 @@
 void Module_Initial();
 void Module_Recognition();
 void ADC_Config();
-void UART1_Config();
-void Fan1_Config();
-void Fan2_Config();
+void Uart1_Config();
+void Uart1_ISR_Enable();
+void Fan_Exhalation_Config();
+void Fan_Inhalation_Config();
 void Heater_Config();
 void ID_Initial();
+void Laser_Switch_Config();
 //void Thermistor_ADC_Config();

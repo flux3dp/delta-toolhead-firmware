@@ -5,7 +5,9 @@
 #include "command.h"
 #include "defines.h"
 #include <stdio.h>
+
 ModuleMode_Type ModuleMode=Unknow;
+
 void Module_Initial(){	
 	Module_Recognition();//set up module mode
 	ID_Initial();
@@ -38,26 +40,24 @@ void Module_Recognition(){
 
 void ADC_Config(){
 	ADC_InitTypeDef     ADC_InitStructure;
-  GPIO_InitTypeDef    GPIO_InitStructure;
-  
-  /* GPIOA Periph clock enable */
-  RCC_AHBPeriphClockCmd(RCC_AHBPeriph_GPIOA, ENABLE);
-  
-  /* ADC1 Periph clock enable */
-  RCC_APB2PeriphClockCmd(RCC_APB2Periph_ADC1, ENABLE);
-  
-	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_0 | GPIO_Pin_6 | GPIO_Pin_7;
-  GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AN;
-  GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL ;
-  GPIO_Init(GPIOA, &GPIO_InitStructure);
-  
-  /* ADCs DeInit */  
-  ADC_DeInit(ADC1);
+	GPIO_InitTypeDef    GPIO_InitStructure;
+
+	/* GPIOA Periph clock enable */
+	RCC_AHBPeriphClockCmd(RCC_AHBPeriph_GPIOA, ENABLE);
+
+	/* ADC1 Periph clock enable */
+	RCC_APB2PeriphClockCmd(RCC_APB2Periph_ADC1, ENABLE);
+
+	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_6 | GPIO_Pin_7;
+	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AN;
+	GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL ;
+	GPIO_Init(GPIOA, &GPIO_InitStructure);
+
+	/* ADCs DeInit */  
+	ADC_DeInit(ADC1);
 }
 
-
-
-void UART1_Config()
+void Uart1_Config()
 {				
 	USART_InitTypeDef USART_InitStructure;
 	GPIO_InitTypeDef GPIO_InitStructure;
@@ -73,9 +73,7 @@ void UART1_Config()
 	GPIO_InitStructure.GPIO_Pin =  GPIO_Pin_9;
 	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
 	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF;
-	//GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
 	GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
-	//GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_UP;
 	GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_UP;
 	GPIO_Init(GPIOA, &GPIO_InitStructure);
 
@@ -83,9 +81,7 @@ void UART1_Config()
 	GPIO_InitStructure.GPIO_Pin =  GPIO_Pin_10;
 	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
 	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF;
-	//GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
 	GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
-	//GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_UP;
 	GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_UP;
 	GPIO_Init(GPIOA, &GPIO_InitStructure);
 	
@@ -100,215 +96,241 @@ void UART1_Config()
 	USART_Init(USART1, &USART_InitStructure);
   
 	//NVIC_Configuration();
-	USART_ITConfig(USART1, USART_IT_RXNE, ENABLE);
+	USART_ITConfig(USART1, USART_IT_RXNE, DISABLE);
 	
 	//USART_AutoBaudRateCmd(USART1,!DISABLE);
-	USART_Cmd(USART1,ENABLE);
+	USART_Cmd(USART1,DISABLE);
 	
 	NVIC_EnableIRQ(USART1_IRQn);	
 }		
+
+void Uart1_ISR_Enable(){
+
+	USART_ITConfig(USART1, USART_IT_RXNE, ENABLE);
+
+	USART_Cmd(USART1,ENABLE);
+}
 
 void Heater_Config(){
 	GPIO_InitTypeDef GPIO_InitStructure; 
 	TIM_TimeBaseInitTypeDef  TIM_TimeBaseStructure;
 	TIM_OCInitTypeDef        TIM_OCInitStructure;
-	/* GPIOC Periph clock enable */
+	/* GPIOB Periph clock enable */
 	RCC_AHBPeriphClockCmd(RCC_AHBPeriph_GPIOB, ENABLE); 
 
-	/* Configure PC10 and PC11 in output pushpull mode */
+	/* GPIOA Periph clock enable */
+	RCC_AHBPeriphClockCmd(RCC_AHBPeriph_GPIOA, ENABLE);
+
+	//Configure thermal reading GPIO PA0
+	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_0;
+	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AN;
+	GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL ;
+	GPIO_Init(GPIOA, &GPIO_InitStructure);
+	
+	/* Configure PB13 in alternate function pushpull mode */
 	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_13;
-	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;
+	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF;
 	GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
 	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
 	GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;	//無提升電阻
 	GPIO_Init(GPIOB, &GPIO_InitStructure);
 	
-//	//Configure Timer for PWM
-//	TIM_TimeBaseStructure.TIM_Prescaler = 0;
-//	TIM_TimeBaseStructure.TIM_CounterMode = TIM_CounterMode_Up;
-//	TIM_TimeBaseStructure.TIM_Period = (SystemCoreClock / 1000 ) - 1; //Default frequency is 1KHz
-//	//ArduinoPort[pin].pwmPeriod = (SystemCoreClock / 1000 ) - 1;
-//	TIM_TimeBaseStructure.TIM_ClockDivision = 0;
-//	TIM_TimeBaseStructure.TIM_RepetitionCounter = 0;
+	//Configure Timer for PWM
+	TIM_TimeBaseStructure.TIM_Prescaler = 0;
+	TIM_TimeBaseStructure.TIM_CounterMode = TIM_CounterMode_Up;
+	TIM_TimeBaseStructure.TIM_Period = (SystemCoreClock / 1000 ) - 1; //Default frequency is 1KHz
+	TIM_TimeBaseStructure.TIM_ClockDivision = 0;
+	TIM_TimeBaseStructure.TIM_RepetitionCounter = 0;
 
-//	//configure TIM1 channel 6
-//	TIM_OCInitStructure.TIM_Pulse = 0; //(uint16_t) (((uint32_t) 2 * (ArduinoPort[pin].pwmPeriod - 1)) / 10); //Default duty cycle at 0%
-//	//TIM_OCInitStructure.TIM_OCMode = TIM_OCMode_PWM2;
-//	TIM_OCInitStructure.TIM_OCMode = TIM_OCMode_PWM1;
-//	TIM_OCInitStructure.TIM_OutputState = TIM_OutputState_Enable;
-//	TIM_OCInitStructure.TIM_OutputNState = TIM_OutputNState_Enable;
-//	TIM_OCInitStructure.TIM_OCPolarity = TIM_OCPolarity_Low;
-//	TIM_OCInitStructure.TIM_OCNPolarity = TIM_OCNPolarity_High;
-//	TIM_OCInitStructure.TIM_OCIdleState = TIM_OCIdleState_Set;
-//	TIM_OCInitStructure.TIM_OCNIdleState = TIM_OCIdleState_Reset;
+	//configure TIM1 
+	TIM_OCInitStructure.TIM_Pulse = 0; //Default duty cycle at 0%
+	TIM_OCInitStructure.TIM_OCMode = TIM_OCMode_PWM1;
+	TIM_OCInitStructure.TIM_OutputState = TIM_OutputState_Enable;
+	TIM_OCInitStructure.TIM_OutputNState = TIM_OutputNState_Enable;
+	TIM_OCInitStructure.TIM_OCPolarity = TIM_OCPolarity_Low;
+	TIM_OCInitStructure.TIM_OCNPolarity = TIM_OCNPolarity_High;
+	TIM_OCInitStructure.TIM_OCIdleState = TIM_OCIdleState_Set;
+	TIM_OCInitStructure.TIM_OCNIdleState = TIM_OCIdleState_Reset;
 
-//	RCC_APB2PeriphClockCmd(RCC_APB2Periph_TIM1, ENABLE); 
+	RCC_APB2PeriphClockCmd(RCC_APB2Periph_TIM1, ENABLE); 
 
-//	//Connect TIM Channels to Port Alternate Function 
-//	GPIO_PinAFConfig(GPIOB, GPIO_PinSource13, GPIO_AF_2);        
-//	TIM_TimeBaseInit(TIM1, &TIM_TimeBaseStructure);
+	//Connect TIM Channels to Port Alternate Function 
+	GPIO_PinAFConfig(GPIOB, GPIO_PinSource13, GPIO_AF_2);        
+	TIM_TimeBaseInit(TIM1, &TIM_TimeBaseStructure);
 
 
-//	TIM_OC1Init(TIM1, &TIM_OCInitStructure);
-//	//enable Frequ and pulse update
-//	TIM_OC1PreloadConfig(TIM1, TIM_OCPreload_Enable);
-//	
-//	TIM_SelectOnePulseMode(TIM1, TIM_OPMode_Repetitive); 
-//	TIM_Cmd(TIM1, ENABLE);
-//	TIM_CtrlPWMOutputs(TIM1, ENABLE);   
-//	TIM1->CCR1 = 0;  
-SetHeaterOff();
+	TIM_OC1Init(TIM1, &TIM_OCInitStructure);
+	//enable Frequ and pulse update
+	TIM_OC1PreloadConfig(TIM1, TIM_OCPreload_Enable);
+	
+	TIM_SelectOnePulseMode(TIM1, TIM_OPMode_Repetitive); 
+	TIM_Cmd(TIM1, ENABLE);
+	TIM_CtrlPWMOutputs(TIM1, ENABLE);   
+	
+	//set pwm=0
+	TIM1->CCR1 = 65535;  
 }
 
-void Fan1_Config(){
-		TIM_TimeBaseInitTypeDef  TIM_TimeBaseStructure;
-		TIM_OCInitTypeDef        TIM_OCInitStructure;
-		GPIO_InitTypeDef GPIO_InitStructure; 
+void Fan_Exhalation_Config(){
+	TIM_TimeBaseInitTypeDef  TIM_TimeBaseStructure;
+	TIM_OCInitTypeDef        TIM_OCInitStructure;
+	GPIO_InitTypeDef GPIO_InitStructure; 
+
+	/* GPIOB clock enable */ 
+	RCC_AHBPeriphClockCmd(RCC_AHBPeriph_GPIOB, ENABLE); 
  
-		/* GPIOB clock enable */ 
-		RCC_AHBPeriphClockCmd(RCC_AHBPeriph_GPIOB, ENABLE); 
-	 
-		/*GPIOB Configuration: alternate function push-pull */ 
-		GPIO_InitStructure.GPIO_Pin =  GPIO_Pin_8; 
-		GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF;
-		GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
-		GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz; 
-		GPIO_Init(GPIOB, &GPIO_InitStructure); 
-	
-	
-		//Configure Timer for PWM
-		TIM_TimeBaseStructure.TIM_Prescaler = 0;
-		TIM_TimeBaseStructure.TIM_CounterMode = TIM_CounterMode_Up;
-		TIM_TimeBaseStructure.TIM_Period = (SystemCoreClock / 1000 ) - 1; //Default frequency is 1KHz
-		//ArduinoPort[pin].pwmPeriod = (SystemCoreClock / 1000 ) - 1;
-		TIM_TimeBaseStructure.TIM_ClockDivision = 0;
-		TIM_TimeBaseStructure.TIM_RepetitionCounter = 0;
-
-		//configure TIM1 channel 6
-		TIM_OCInitStructure.TIM_Pulse = 0; //(uint16_t) (((uint32_t) 2 * (ArduinoPort[pin].pwmPeriod - 1)) / 10); //Default duty cycle at 0%
-		//TIM_OCInitStructure.TIM_OCMode = TIM_OCMode_PWM2;
-		TIM_OCInitStructure.TIM_OCMode = TIM_OCMode_PWM1;
-		TIM_OCInitStructure.TIM_OutputState = TIM_OutputState_Enable;
-		TIM_OCInitStructure.TIM_OutputNState = TIM_OutputNState_Enable;
-		TIM_OCInitStructure.TIM_OCPolarity = TIM_OCPolarity_Low;
-		TIM_OCInitStructure.TIM_OCNPolarity = TIM_OCNPolarity_High;
-		TIM_OCInitStructure.TIM_OCIdleState = TIM_OCIdleState_Set;
-		TIM_OCInitStructure.TIM_OCNIdleState = TIM_OCIdleState_Reset;
+	/*GPIOB Configuration: alternate function push-pull */ 
+	GPIO_InitStructure.GPIO_Pin =  GPIO_Pin_8; 
+	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF;
+	GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
+	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz; 
+	GPIO_Init(GPIOB, &GPIO_InitStructure); 
 
 
-		RCC_APB2PeriphClockCmd(RCC_APB2Periph_TIM16, ENABLE); 
+	//Configure Timer for PWM
+	TIM_TimeBaseStructure.TIM_Prescaler = 0;
+	TIM_TimeBaseStructure.TIM_CounterMode = TIM_CounterMode_Up;
+	TIM_TimeBaseStructure.TIM_Period = (SystemCoreClock / 1000 ) - 1; //Default frequency is 1KHz
+	TIM_TimeBaseStructure.TIM_ClockDivision = 0;
+	TIM_TimeBaseStructure.TIM_RepetitionCounter = 0;
 
-		//Connect TIM Channels to Port Alternate Function 
-		GPIO_PinAFConfig(GPIOB, GPIO_PinSource8, GPIO_AF_2);        
-		TIM_TimeBaseInit(TIM16, &TIM_TimeBaseStructure);
+	//configure TIM1 channel 6
+	TIM_OCInitStructure.TIM_Pulse = 0; //Default duty cycle at 0%
+	TIM_OCInitStructure.TIM_OCMode = TIM_OCMode_PWM1;
+	TIM_OCInitStructure.TIM_OutputState = TIM_OutputState_Enable;
+	TIM_OCInitStructure.TIM_OutputNState = TIM_OutputNState_Enable;
+	TIM_OCInitStructure.TIM_OCPolarity = TIM_OCPolarity_Low;
+	TIM_OCInitStructure.TIM_OCNPolarity = TIM_OCNPolarity_High;
+	TIM_OCInitStructure.TIM_OCIdleState = TIM_OCIdleState_Set;
+	TIM_OCInitStructure.TIM_OCNIdleState = TIM_OCIdleState_Reset;
 
 
-		TIM_OC1Init(TIM16, &TIM_OCInitStructure);
-		//enable Frequ and pulse update
-		TIM_OC1PreloadConfig(TIM16, TIM_OCPreload_Enable);
+	RCC_APB2PeriphClockCmd(RCC_APB2Periph_TIM16, ENABLE); 
 
-		TIM_SelectOnePulseMode(TIM16, TIM_OPMode_Repetitive); 
-		TIM_Cmd(TIM16, ENABLE);
-		TIM_CtrlPWMOutputs(TIM16, ENABLE);  
-		TIM16->CCR1 = 65025;
+	//Connect TIM Channels to Port Alternate Function 
+	GPIO_PinAFConfig(GPIOB, GPIO_PinSource8, GPIO_AF_2);        
+	TIM_TimeBaseInit(TIM16, &TIM_TimeBaseStructure);
+
+
+	TIM_OC1Init(TIM16, &TIM_OCInitStructure);
+	//enable Frequ and pulse update
+	TIM_OC1PreloadConfig(TIM16, TIM_OCPreload_Enable);
+
+	TIM_SelectOnePulseMode(TIM16, TIM_OPMode_Repetitive); 
+	TIM_Cmd(TIM16, ENABLE);
+	TIM_CtrlPWMOutputs(TIM16, ENABLE);  
+	TIM16->CCR1 = 65535;
 }
 
-void Fan2_Config(){
-		TIM_TimeBaseInitTypeDef  TIM_TimeBaseStructure;
-		TIM_OCInitTypeDef        TIM_OCInitStructure;
-		GPIO_InitTypeDef GPIO_InitStructure; 
+void Fan_Inhalation_Config(){
+	TIM_TimeBaseInitTypeDef  TIM_TimeBaseStructure;
+	TIM_OCInitTypeDef        TIM_OCInitStructure;
+	GPIO_InitTypeDef GPIO_InitStructure; 
+
+	/* GPIOB clock enable */ 
+	RCC_AHBPeriphClockCmd(RCC_AHBPeriph_GPIOB, ENABLE); 
  
-		/* GPIOB clock enable */ 
-		RCC_AHBPeriphClockCmd(RCC_AHBPeriph_GPIOB, ENABLE); 
-	 
-		/*GPIOB Configuration: alternate function push-pull */ 
-		GPIO_InitStructure.GPIO_Pin =  GPIO_Pin_9; 
-		GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF;
-		GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
-		GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz; 
-		GPIO_Init(GPIOB, &GPIO_InitStructure); 
+	/*GPIOB Configuration: alternate function push-pull */ 
+	GPIO_InitStructure.GPIO_Pin =  GPIO_Pin_9; 
+	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF;
+	GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
+	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz; 
+	GPIO_Init(GPIOB, &GPIO_InitStructure); 
+
+
+	//Configure Timer for PWM
+	TIM_TimeBaseStructure.TIM_Prescaler = 0;
+	TIM_TimeBaseStructure.TIM_CounterMode = TIM_CounterMode_Up;
+	TIM_TimeBaseStructure.TIM_Period = (SystemCoreClock / 1000 ) - 1; //Default frequency is 1KHz
+	TIM_TimeBaseStructure.TIM_ClockDivision = 0;
+	TIM_TimeBaseStructure.TIM_RepetitionCounter = 0;
+
+	//configure TIM1 channel 7
+	TIM_OCInitStructure.TIM_Pulse = 0;  //Default duty cycle at 0%
+	TIM_OCInitStructure.TIM_OCMode = TIM_OCMode_PWM1;
+	TIM_OCInitStructure.TIM_OutputState = TIM_OutputState_Enable;
+	TIM_OCInitStructure.TIM_OutputNState = TIM_OutputNState_Enable;
+	TIM_OCInitStructure.TIM_OCPolarity = TIM_OCPolarity_Low;
+	TIM_OCInitStructure.TIM_OCNPolarity = TIM_OCNPolarity_High;
+	TIM_OCInitStructure.TIM_OCIdleState = TIM_OCIdleState_Set;
+	TIM_OCInitStructure.TIM_OCNIdleState = TIM_OCIdleState_Reset;
 	
 	
-		//Configure Timer for PWM
-		TIM_TimeBaseStructure.TIM_Prescaler = 0;
-		TIM_TimeBaseStructure.TIM_CounterMode = TIM_CounterMode_Up;
-		TIM_TimeBaseStructure.TIM_Period = (SystemCoreClock / 1000 ) - 1; //Default frequency is 1KHz
-		//ArduinoPort[pin].pwmPeriod = (SystemCoreClock / 1000 ) - 1;
-		TIM_TimeBaseStructure.TIM_ClockDivision = 0;
-		TIM_TimeBaseStructure.TIM_RepetitionCounter = 0;
+//Timer configuration
+	RCC_APB2PeriphClockCmd(RCC_APB2Periph_TIM17, ENABLE);  
+	//Connect TIM Channels to Port Alternate Function 
+	GPIO_PinAFConfig(GPIOB, GPIO_PinSource9, GPIO_AF_2);        
+	TIM_TimeBaseInit(TIM17, &TIM_TimeBaseStructure);
 
-		//configure TIM1 channel 7
-		TIM_OCInitStructure.TIM_Pulse = 0; //(uint16_t) (((uint32_t) 2 * (ArduinoPort[pin].pwmPeriod - 1)) / 10); //Default duty cycle at 0%
-		//TIM_OCInitStructure.TIM_OCMode = TIM_OCMode_PWM2;
-		TIM_OCInitStructure.TIM_OCMode = TIM_OCMode_PWM1;
-		TIM_OCInitStructure.TIM_OutputState = TIM_OutputState_Enable;
-		TIM_OCInitStructure.TIM_OutputNState = TIM_OutputNState_Enable;
-		TIM_OCInitStructure.TIM_OCPolarity = TIM_OCPolarity_Low;
-		TIM_OCInitStructure.TIM_OCNPolarity = TIM_OCNPolarity_High;
-		TIM_OCInitStructure.TIM_OCIdleState = TIM_OCIdleState_Set;
-		TIM_OCInitStructure.TIM_OCNIdleState = TIM_OCIdleState_Reset;
-		
-		
-	//Timer configuration
-		RCC_APB2PeriphClockCmd(RCC_APB2Periph_TIM17, ENABLE);  
-		//Connect TIM Channels to Port Alternate Function 
-		GPIO_PinAFConfig(GPIOB, GPIO_PinSource9, GPIO_AF_2);        
-		TIM_TimeBaseInit(TIM17, &TIM_TimeBaseStructure);
-
-		TIM_OC1Init(TIM17, &TIM_OCInitStructure);
-		//enable Frequ and pulse update
-		TIM_OC1PreloadConfig(TIM17, TIM_OCPreload_Enable);
-		
-		TIM_SelectOnePulseMode(TIM17, TIM_OPMode_Repetitive); 
-		TIM_Cmd(TIM17, ENABLE);
-		TIM_CtrlPWMOutputs(TIM17, ENABLE);  
-		TIM17->CCR1 = 65025;
+	TIM_OC1Init(TIM17, &TIM_OCInitStructure);
+	//enable Frequ and pulse update
+	TIM_OC1PreloadConfig(TIM17, TIM_OCPreload_Enable);
+	
+	TIM_SelectOnePulseMode(TIM17, TIM_OPMode_Repetitive); 
+	TIM_Cmd(TIM17, ENABLE);
+	TIM_CtrlPWMOutputs(TIM17, ENABLE);  
+	TIM17->CCR1 = 65535;
 }
 
 void Thermistor_ADC_Config()
 {
-  ADC_InitTypeDef     ADC_InitStructure;
-  GPIO_InitTypeDef    GPIO_InitStructure;
-  
-  /* GPIOA Periph clock enable */
-  RCC_AHBPeriphClockCmd(RCC_AHBPeriph_GPIOA, ENABLE);
-  
-  /* ADC1 Periph clock enable */
-  RCC_APB2PeriphClockCmd(RCC_APB2Periph_ADC1, ENABLE);
-  
+	ADC_InitTypeDef     ADC_InitStructure;
+	GPIO_InitTypeDef    GPIO_InitStructure;
+
+	/* GPIOA Periph clock enable */
+	RCC_AHBPeriphClockCmd(RCC_AHBPeriph_GPIOA, ENABLE);
+
+	/* ADC1 Periph clock enable */
+	RCC_APB2PeriphClockCmd(RCC_APB2Periph_ADC1, ENABLE);
+
 	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_0;
-  GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AN;
-  GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL ;
-  GPIO_Init(GPIOA, &GPIO_InitStructure);
-  
-  /* ADCs DeInit */  
-  ADC_DeInit(ADC1);
-  
-  /* Initialize ADC structure */
-  ADC_StructInit(&ADC_InitStructure);
-  
-  /* Configure the ADC1 in continuous mode with a resolution equal to 12 bits  */
-  ADC_InitStructure.ADC_Resolution = ADC_Resolution_12b;
-  ADC_InitStructure.ADC_ContinuousConvMode = ENABLE; 
-  ADC_InitStructure.ADC_ExternalTrigConvEdge = ADC_ExternalTrigConvEdge_None;
-  ADC_InitStructure.ADC_DataAlign = ADC_DataAlign_Right;
-  ADC_InitStructure.ADC_ScanDirection = ADC_ScanDirection_Upward;
-  ADC_Init(ADC1, &ADC_InitStructure); 
-  
-  /* Convert the ADC1 Channel 0 with 239.5 Cycles as sampling time */ 
+	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AN;
+	GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL ;
+	GPIO_Init(GPIOA, &GPIO_InitStructure);
+
+	/* ADCs DeInit */  
+	ADC_DeInit(ADC1);
+
+	/* Initialize ADC structure */
+	ADC_StructInit(&ADC_InitStructure);
+
+	/* Configure the ADC1 in continuous mode with a resolution equal to 12 bits  */
+	ADC_InitStructure.ADC_Resolution = ADC_Resolution_12b;
+	ADC_InitStructure.ADC_ContinuousConvMode = ENABLE; 
+	ADC_InitStructure.ADC_ExternalTrigConvEdge = ADC_ExternalTrigConvEdge_None;
+	ADC_InitStructure.ADC_DataAlign = ADC_DataAlign_Right;
+	ADC_InitStructure.ADC_ScanDirection = ADC_ScanDirection_Upward;
+	ADC_Init(ADC1, &ADC_InitStructure); 
+
+	/* Convert the ADC1 Channel 0 with 239.5 Cycles as sampling time */ 
 	ADC_ChannelConfig(ADC1, ADC_Channel_0 , ADC_SampleTime_239_5Cycles);  
 
-  /* ADC Calibration */
-  ADC_GetCalibrationFactor(ADC1);
-  
-  /* Enable the ADC peripheral */
-  ADC_Cmd(ADC1, ENABLE);     
-  
-  /* Wait the ADRDY flag */
-  while(!ADC_GetFlagStatus(ADC1, ADC_FLAG_ADRDY)); 
-  
-  /* ADC1 regular Software Start Conv */ 
-  ADC_StartOfConversion(ADC1);
+	/* ADC Calibration */
+	ADC_GetCalibrationFactor(ADC1);
+
+	/* Enable the ADC peripheral */
+	ADC_Cmd(ADC1, ENABLE);     
+
+	/* Wait the ADRDY flag */
+	while(!ADC_GetFlagStatus(ADC1, ADC_FLAG_ADRDY)); 
+
+	/* ADC1 regular Software Start Conv */ 
+	ADC_StartOfConversion(ADC1);
   
 }
 
+void Laser_Switch_Config(){
+	GPIO_InitTypeDef GPIO_InitStructure; 
+	/* GPIOA Periph clock enable */
+	RCC_AHBPeriphClockCmd(RCC_AHBPeriph_GPIOA, ENABLE); 
+
+	/* Configure PA0 in output pushpull mode */
+	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_0;
+	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;
+	GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
+	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+	GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;	//無提升電阻
+	GPIO_Init(GPIOA, &GPIO_InitStructure);
+	
+	GPIO_ResetBits(GPIOA,GPIO_Pin_0);
+}
