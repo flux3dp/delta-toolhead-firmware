@@ -1,52 +1,59 @@
 Printer head firmware protocol
 
-* ®˙±o∞Ú•ª™¨∫A
+* ÂèñÂæóÂü∫Êú¨ÁãÄÊÖã
 
-? `1 HELLO *[CHKSUM]\n`
+‚û•  `1 HELLO *[CHKSUM]\n`
 
-? `1 OK HELLO TYPE:EXTRUDER ID:3f1f2a VENDOR:flux\ .inc FIRMWARE:xxxxxx VERSION:0.1.9 EXTRUDER:1 MAX_TEMPERATURE:250 *[CHKSUM]\n`
+‚á† `1 OK HELLO TYPE:EXTRUDER ID:3f1f2a VENDOR:flux\ .inc FIRMWARE:xxxxxx VERSION:0.1.9 EXTRUDER:1 MAX_TEMPERATURE:250 *[CHKSUM]\n`
 
-? `1 PING *[CHKSUM]\n`
+‚û•  `1 PING *[CHKSUM]\n`
 
-? `1 OK PONG 1 ER:0 RT:123.3,212.3 TT:200.0,230.0 FA:255 *[CHKSUM]\n` (for extruder)
+‚á† `1 OK PONG 1 ER:0 RT:123.3,212.3 TT:200.0,230.0 FA:255 *[CHKSUM]\n` (for extruder)
 
-? `1 OK PONG 1 ER:0 *[CHKSUM]\n` (for laser)
+‚á† `1 OK PONG 1 ER:0 *[CHKSUM]\n` (for laser)
 
-Note: PONG 1=¶≥HELLOπL, RT = real temp, TT = target temp, FA = fan speed (0~255), ER: ø˘ª~•NΩX, 0=µL
+Note: PONG 1=ÊúâHELLOÈÅé, RT = real temp, TT = target temp, FA = fan speed (0~255), ER: ÈåØË™§‰ª£Á¢º, 0=ÁÑ°
 
 Note2:if TT:NAN that is target temperature had not been setted
 
-* ∑≈´◊±±®Ó
 
-? `1 H:1 T:200.0 *[CHKSUM]\n`  or number or NAN
+* Ê∫´Â∫¶ÊéßÂà∂
 
-? `1 OK HEATER *[CHKSUM]\n`
+‚û•  `1 H:1 T:200.0 *[CHKSUM]\n`  or number or NAN
 
-* ≠∑Æ∞±±®Ó
+‚á† `1 OK HEATER *[CHKSUM]\n`
 
-? `1 F:1 S:255 *[CHKSUM]\n` (0~255) ±j´◊
 
-? `1 OK FAN *[CHKSUM]\n`
+* È¢®ÊâáÊéßÂà∂
+
+‚û•  `1 F:1 S:255 *[CHKSUM]\n` (0~255) Âº∑Â∫¶
+
+‚á† `1 OK FAN *[CHKSUM]\n`
+
 
 * ERROR CODE
 
 
-? `1 ER:0 UNKNOW_COMMAND\n`
+‚á† `1 ER:0 UNKNOW_COMMAND\n`
 
-? `1 ER:1 WRONG_NO_PARM\n`
+‚á† `1 ER:1 WRONG_NO_PARM\n`
 
-? `1 ER:2 PARAM_OUT_OF_RANGE\n`
+‚á† `1 ER:2 PARAM_OUT_OF_RANGE\n`
 
-? `1 ER:3 COMMAND_CANNOT_BE_PROCESSSED\n`
+‚á† `1 ER:3 COMMAND_CANNOT_BE_PROCESSSED\n`
 
-? `1 ER:4 UNKNOW_MODULE\n`
+‚á† `1 ER:4 UNKNOW_MODULE\n`
 
-? `1 ER:5 SENSOR_FAILED\n`
+‚á† `1 ER:5 SENSOR_FAILED\n`
 
-? `1 ER:6 NO_HELLO\n`
+‚á† `1 ER:6 NO_HELLO\n`
 
-? `1 ER:7 SHAKE\n`
+‚á† `1 ER:7 SHAKE\n`
 
-? `1 ER:8 TILT\n`
+‚á† `1 ER:8 TILT\n`
 
-Note: ER:0~3 is general response,all commands must be respond.ER:4~8 is only responded by PONG.
+‚á† `1 ER:9 Temperature is too high\n`
+
+‚á† `1 ER:10 Fan do not work\n`
+
+Note: ER:0~3 are general error responses,all commands could respond.ER:4~10 are only responded by PONG.
