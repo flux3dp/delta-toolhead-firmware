@@ -44,7 +44,7 @@ Note2:if TT:NAN that is target temperature had not been setted
 
 ⇠ `1 ER:1 UNKNOW_MODULE\n`
 
-⇠ `1 ER:2 SENSOR_FAILED\n`
+⇠ `1 ER:2 SENSOR_FAILURE\n`
 
 ⇠ `1 ER:4 NO_HELLO\n`
 
