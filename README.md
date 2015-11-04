@@ -34,26 +34,26 @@ Note2:if TT:NAN that is target temperature had not been setted
 * ERROR CODE
 
 
-⇠ `1 ER:0 UNKNOW_COMMAND\n`
+⇠ `1 ER UNKNOW_COMMAND\n`
 
-⇠ `1 ER:1 WRONG_NO_PARM\n`
+⇠ `1 ER WRONG_NO_PARM\n`
 
-⇠ `1 ER:2 PARAM_OUT_OF_RANGE\n`
+⇠ `1 ER PARAM_OUT_OF_RANGE\n`
 
-⇠ `1 ER:3 COMMAND_CANNOT_BE_PROCESSSED\n`
+⇠ `1 ER COMMAND_CANNOT_BE_PROCESSSED\n`
 
-⇠ `1 ER:4 UNKNOW_MODULE\n`
+⇠ `1 ER:1 UNKNOW_MODULE\n`
 
-⇠ `1 ER:5 SENSOR_FAILED\n`
+⇠ `1 ER:2 SENSOR_FAILED\n`
 
-⇠ `1 ER:6 NO_HELLO\n`
+⇠ `1 ER:4 NO_HELLO\n`
 
-⇠ `1 ER:7 SHAKE\n`
+⇠ `1 ER:8 SHAKE\n`
 
-⇠ `1 ER:8 TILT\n`
+⇠ `1 ER:16 TILT\n`
 
-⇠ `1 ER:9 PID_OUT_OF_CONTROL\n`
+⇠ `1 ER:32 PID_OUT_OF_CONTROL\n`
 
-⇠ `1 ER:10 FAN_FAILURE\n`
+⇠ `1 ER:64 FAN_FAILURE\n`
 
 Note: ER:0~3 are general error responses,all commands could respond.ER:4~10 are only responded by PONG.
