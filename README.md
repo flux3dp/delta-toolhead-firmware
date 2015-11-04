@@ -2,7 +2,7 @@ Printer head firmware protocol
 
 * 取得基本狀態
 
-➥  `1 HELLO *[CHKSUM]\n`
+➥  `1 HELLO *[CHKSUM]\n` 或 ➥  `1 DEBUG\n`
 
 ⇠ `1 OK HELLO TYPE:EXTRUDER ID:3f1f2a VENDOR:flux\ .inc FIRMWARE:xxxxxx VERSION:0.1.9 EXTRUDER:1 MAX_TEMPERATURE:250 *[CHKSUM]\n`
 
