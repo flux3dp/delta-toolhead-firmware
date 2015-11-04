@@ -52,8 +52,8 @@ Note2:if TT:NAN that is target temperature had not been setted
 
 ⇠ `1 ER:8 TILT\n`
 
-⇠ `1 ER:9 Temperature is too high\n`
+⇠ `1 ER:9 PID_OUT_OF_CONTROL\n`
 
-⇠ `1 ER:10 Fan do not work\n`
+⇠ `1 ER:10 FAN_FAILURE\n`
 
 Note: ER:0~3 are general error responses,all commands could respond.ER:4~10 are only responded by PONG.
