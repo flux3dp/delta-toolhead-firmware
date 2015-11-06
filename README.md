@@ -8,9 +8,9 @@ Printer head firmware protocol
 
 ➥  `1 PING *[CHKSUM]\n`
 
-⇠ `1 OK PONG 1 ER:0 RT:123.3,212.3 TT:200.0,230.0 FA:255 *[CHKSUM]\n` (for extruder)
+⇠ `1 OK PONG ER:0 RT:123.3,212.3 TT:200.0,230.0 FA:255 *[CHKSUM]\n` (for extruder)
 
-⇠ `1 OK PONG 1 ER:0 *[CHKSUM]\n` (for laser)
+⇠ `1 OK PONG ER:0 *[CHKSUM]\n` (for laser)
 
 Note: PONG 1=有HELLO過, RT = real temp, TT = target temp, FA = fan speed (0~255), ER: 錯誤代碼, 0=無
 
@@ -19,14 +19,14 @@ Note2:if TT:NAN that is target temperature had not been setted
 
 * 溫度控制
 
-➥  `1 H:1 T:200.0 *[CHKSUM]\n`  or number or NAN
+➥  `1 H:0 T:200.0 *[CHKSUM]\n`  or number or NAN
 
 ⇠ `1 OK HEATER *[CHKSUM]\n`
 
 
 * 風扇控制
 
-➥  `1 F:1 S:255 *[CHKSUM]\n` (0~255) 強度
+➥  `1 F:0 S:255 *[CHKSUM]\n` (0~255) 強度
 
 ⇠ `1 OK FAN *[CHKSUM]\n`
 
