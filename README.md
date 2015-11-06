@@ -59,10 +59,18 @@ Note2:if TT:NAN that is target temperature had not been setted
 Note: ER are general error responses,all commands could respond,ER:1~64 are only responded by PONG.
 
 DEBUG MODE:
+
   `Show gyrosope sensor data`
+  
   `Command has no timeout`
+  
   `No chechsum check`
+  
 COMMON MODE:
+
   `Laser head has 1s timeout`
+  
   `Print head has 5 minutes timeout`
+  
   `It do not show sensor data automatically`
+  
