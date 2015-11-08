@@ -50,10 +50,33 @@ void (*delay)(uint32_t) = delay_ms; //Delay function
 
 
 /* Private function prototypes -----------------------------------------------*/
-//static void Init_LED(void);
 static void Init_CS(void);
-//static void Init_RESET(void);
 static void staticDelay(uint32_t);
+
+uint8_t Get_Checksum(char *Data,uint16_t length){
+	uint16_t i=0;
+	uint8_t checksum=0;
+	while(i<length){
+		checksum=checksum^Data[i++];
+	}
+	return checksum;
+}
+
+float ABS_F(float value){
+	if(value<0)
+		return value*(-1);
+	else
+		return value;
+}
+
+
+
+
+
+
+
+
+
 
 /**
   * @brief  DISCOVERY_Configuration This function configure discovery kit clock and default interrupt 
@@ -233,19 +256,9 @@ void DISCOVERY_Configuration(void){
   */
 void delay_ms(uint32_t n_ms)
 {
-  // SysTick interrupt each 1000 Hz with HCLK equal to 32MHz
-  // - 30 to compensate the overhead of this sub routine
-  SysTick_Config(8000*PLL_MUL_X - 30);
-  // Enable the SysTick Counter
-
-  G_tickValue = n_ms;
-  while(G_tickValue == n_ms)
-    ;
-
-  // SysTick interrupt each 1000 Hz with HCLK equal to 32MHz
-  SysTick_Config(8000*PLL_MUL_X);
-  while(G_tickValue != 0)
-    ;
+	G_tickValue = n_ms;
+	while(G_tickValue > 0)
+		;
 }
 
 /**

@@ -527,11 +527,6 @@
               <FilePath>..\stm32f0xx_it.c</FilePath>
             </File>
             <File>
-              <FileName>utilities.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\..\Common\utilities.c</FilePath>
-            </File>
-            <File>
               <FileName>system_stm32f0xx.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\..\Common\system_stm32f0xx.c</FilePath>
@@ -590,6 +585,11 @@
               <FileName>fan.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\fan.c</FilePath>
+            </File>
+            <File>
+              <FileName>utilities.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\..\Common\utilities.c</FilePath>
             </File>
           </Files>
         </Group>

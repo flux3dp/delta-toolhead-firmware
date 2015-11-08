@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include "command.h"
 #include "TemperatureMapping.h"
-
+#include "fan.h"
 float Target_Temperature = 0.0;
 
 static bool Auto_PID_Completed = FALSE;
@@ -42,7 +42,7 @@ float Current_Temperature;
 float lastInput=0;
 
 //return heater temperature
-float Read_Temperature(){
+float Read_Temperature(void){
 	uint32_t ADC_Value=0;
 	uint8_t i;
 	
@@ -59,10 +59,17 @@ float Read_Temperature(){
 		return 999.9;
 }
 
-void PID_Handler(){
-	Target_Temperature=200.0;
+void PID_Handler(void){
+	float RT=Read_Temperature();
 	Auto_PID_Completed=TRUE;
-	if(Target_Temperature == 0 || Read_Temperature() > Max_Temperature){
+	
+	if(RT < Exhalation_Fan_Close_Temp){
+		Set_Exhalation_Fan_PWM(0);//close fan
+	}else{
+		Set_Exhalation_Fan_PWM(255);//close fan
+	}
+	
+	if(Target_Temperature == 0 || RT > Max_Temperature){
 		Set_Heater_PWM(0);
 		//fan
 		return;
@@ -76,7 +83,7 @@ void PID_Handler(){
 	}
 }
 
-void PID_Control(){
+void PID_Control(void){
 	if(PID_Time_Count>=PID_Period_Time)
 	{
 		Set_Heater_PWM(Get_Pid_Output());
@@ -86,7 +93,7 @@ void PID_Control(){
 	
 }
 
-uint8_t PID_Compute(){
+uint8_t PID_Compute(void){
 	float pid_output;
 	uint32_t timeChange = PID_Time_Count;
 	if(timeChange>=5)
@@ -119,8 +126,16 @@ uint8_t PID_Compute(){
 	else return 0;
 }
 
+void Set_Temperature(float setpoint){
+	pid_reset=TRUE;
+	dTerm=0;
+	Target_Temperature=setpoint;
+	if(setpoint>0.1)
+		Set_Exhalation_Fan_PWM(255);
+}
+
 //return 0~255
-uint8_t Get_Pid_Output() {
+uint8_t Get_Pid_Output(void) {
 	float pid_output;
 	float pid_error;
 	float current_temperature = Read_Temperature();
@@ -164,7 +179,7 @@ uint8_t Get_Pid_Output() {
 }
 
 //return 0~65535
-uint16_t Get_Pid_Output_Uint16() {
+uint16_t Get_Pid_Output_Uint16(void) {
 	float pid_output;
 	float pid_error;
 	float current_temperature = Read_Temperature();
@@ -207,7 +222,7 @@ uint16_t Get_Pid_Output_Uint16() {
 	return (uint16_t)pid_output;
 }
 
-void PID_Autotune(){
+void PID_Autotune(void){
 	
 	if(Auto_PID_Completed){
 		return;
@@ -349,6 +364,6 @@ void Set_Heater_PWM_Uint16(uint16_t PWM){
 	TIM1->CCR1 =65535-PWM;  
 }
 
-void Disable_All_Heater(){
+void Disable_All_Heater(void){
 	Set_Heater_PWM(0);
 }

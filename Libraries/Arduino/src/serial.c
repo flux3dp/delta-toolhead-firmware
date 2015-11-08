@@ -162,7 +162,7 @@ static char rcv_buff_full=0;           //rcv_buff is full. pt_rcv_write
 static void GPIO_Configuration_USART1(void);
 static void UART1_Init(uint32_t baud_rate);
 static USART_TypeDef* USARTx = USART1;
-static void NVIC_Configuration(void);
+//static void NVIC_Configuration(void);
 #if 0
 static void GPIO_Configuration_USART2(void);
 static void UART2_Init(uint32_t baud_rate);
@@ -194,7 +194,7 @@ void UART1_Init(uint32_t baud_rate){
   USART_InitStructure.USART_Mode = USART_Mode_Rx | USART_Mode_Tx;
   USART_Init(USART1, &USART_InitStructure);  
   
-  NVIC_Configuration();
+  //NVIC_Configuration();
   
   USART_ITConfig(USART1, USART_IT_RXNE, ENABLE);
 
@@ -448,20 +448,21 @@ static void GPIO_Configuration_USART2(void)
   * @param  None
   * @retval None
   */
-static void NVIC_Configuration(void)
-{
-  NVIC_InitTypeDef NVIC_InitStructure;
+//static void NVIC_Configuration(void)
+//{
+//	NVIC_InitTypeDef NVIC_InitStructure;
 
-  
-  /* Enable the USART2 Interrupt */
-  //NVIC_InitStructure.NVIC_IRQChannel = USART2_IRQn;
-	NVIC_InitStructure.NVIC_IRQChannel = USART1_IRQn;
-  NVIC_InitStructure.NVIC_IRQChannelPriority = 0;
-  NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
-  NVIC_Init(&NVIC_InitStructure);
-	
-	
-}
+//	NVIC_InitStructure.NVIC_IRQChannel = USART1_IRQn;
+//	NVIC_InitStructure.NVIC_IRQChannelPriority = 0;
+//	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
+//	NVIC_Init(&NVIC_InitStructure);
+
+//	NVIC_InitStructure.NVIC_IRQChannel = TIM6_DAC_IRQn;
+//	NVIC_InitStructure.NVIC_IRQChannelPriority = 1;
+//	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
+//	NVIC_Init(&NVIC_InitStructure);
+//	
+//}
 
 
 //int cot=0;

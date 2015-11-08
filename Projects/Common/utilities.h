@@ -91,11 +91,14 @@ typedef enum { FAILED = 0, PASSED = !FAILED} TestStatus;
 /* function prototypes -------------------------------------------------------*/
 void delay_ms(uint32_t n_ms);
 void delay_10us(uint32_t n_10us);
-void DISCOVERY_Configuration(void);
-void INT_EXTI_Config(void);
-void INT1_EXTI_Config(void);
-void INT2_EXTI_Config(void);
-void PWM_Config(void);
+uint8_t Get_Checksum(char *Data,uint16_t length);
+float ABS_F(float value);
+
+//void DISCOVERY_Configuration(void);
+//void INT_EXTI_Config(void);
+//void INT1_EXTI_Config(void);
+//void INT2_EXTI_Config(void);
+//void PWM_Config(void);
 
 extern void(*delay)(uint32_t); //Func pointer to delay_ms
 

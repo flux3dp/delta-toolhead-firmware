@@ -1,5 +1,6 @@
 #include "LaserModule.h"
 #include <stdint.h>
+#include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
 #include "gpio.h"
@@ -7,59 +8,58 @@
 #include "defines.h"
 #include "heater.h"
 #include "fan.h"
-
-extern bool Already_Hello;
+#include "Six_Axis_Sensor.h"
+#include "utilities.h"
 extern float Target_Temperature;
+extern volatile uint32_t Module_State;
+extern volatile bool Debug_Mode;
 
-void Laser_Cmd_Handler(){
+void Laser_Cmd_Handler(void){
 	char * Command_Str;
-	uint16_t Real_Temperatuer=0;
+		
+	//uint16_t Real_Temperatuer=0;
 	uint16_t Int_Temp;
-	uint16_t Fan_Pwm;
-	
+	float 	 Float_Temp;
+	//uint16_t Fan_Pwm;
+	char Response_Buffer[200];
 	Command_Str = strtok(NULL, " ");
 	
-	if(!strcmp(Command_Str, "HELLO")){
-		//OK HELLO TYPE:EXTRUDER ID:3f1f2a VENDOR:flux\ .inc FIRMWARE:xxxxxx VERSION:0.1.9 EXTRUDER:1 MAX_TEMPERATURE:250 *[CHKSUM]\n
+	if(!strcmp(Command_Str, "HELLO")){	
+		Debug_Mode=FALSE;
+		Reset_Module_State(NO_HELLO);
+		sprintf(Response_Buffer,"1 OK HELLO TYPE:LASER ID:%u VENDOR:%s FIRMWARE:OHMAMA VERSION:%.4lf LASER ",Get_UUID(),Vender,Firmware_Version);
+
+	}else if(!strcmp(Command_Str, "DEBUG")){
+		Reset_Module_State(NO_HELLO);
+		sprintf(Response_Buffer,"1 OK HELLO TYPE:LASER ID:%u VENDOR:%s FIRMWARE:OHMAMA VERSION:%.4lf LASER ",Get_UUID(),Vender,Firmware_Version);
 		
-		//Pong error check();
-		
-		Already_Hello=TRUE;
-		
-		printf("OK ");
-		printf("LASER ");
-		printf("%d ",Read_ID());
-		printf("VENDOR:%s ",Vender);
-		printf("FIRMWARE:OHMAMA ");
-		printf("VERSION:%.4lf ",Firmware_Version);
-		printf("*[checksum]\n");
 	}else if(!strcmp(Command_Str, "PING")){
-		//printf("1 OK PONG 1 ER:0 RT:123.3,212.3 TT:200.0,NAN FA:255 *[CHKSUM]\n
-		printf("OK ");
-		printf("PONG ");
-		printf("%s ",(Already_Hello?"1 ":"0 "));
-		printf("ER:0 ");
-		printf("FA:%d ",0);
-		printf("*[checksum]\n");
-	}else if(!strcmp(Command_Str, "F:1")){
-		Command_Str = strtok(NULL, " ");
-		if(Command_Str[0]=='S' && Command_Str[1]==':' && IsNumber(&Command_Str[2])){
-				Int_Temp = atoi(&Command_Str[2]);
-				if(Int_Temp >= 0 && Int_Temp <= 255){
-					Set_Inhalation_Fan_PWM(Int_Temp);
-				}else{
-					printf("ER:2 PARAM_OUT_OF_RANGE\n\n");
-					return;
-				}
-		}else{
-			printf("ER:0 UNKNOW_COMMAND ");
-			printf("*[checksum]\n");
-			return;
-		}
-		printf("OK FAN ");
-		printf("*[checksum]\n");
+		//error check
+		if(!(Module_State&(SHAKE|TILT)))
+			Laser_Switch_On();
+		//response
+		sprintf(Response_Buffer,"1 OK PONG ER:%d ",Module_State);
+		
+		//reset sensor state
+		Reset_Axis_Sensor_State();
+		//reset alarm IO
+		Alarm_Off();
 	}else{
-		printf("ER:0 UNKNOW_COMMAND\n");
+		sprintf(Response_Buffer,"1 ER UNKNOW_COMMAND ");
 	}
+	
+	//caculate checksum and send back
+	sprintf(Response_Buffer,"%s*%d",Response_Buffer,Get_Checksum(Response_Buffer,strlen(Response_Buffer)));
+	printf("%s\n",Response_Buffer);
+}
+
+void Laser_Switch_On(void){
+	GPIO_ResetBits(GPIOA,GPIO_Pin_0);
+	GPIO_ResetBits(GPIOB,GPIO_Pin_9);
+}
+
+void Laser_Switch_Off(void){
+	GPIO_SetBits(GPIOA,GPIO_Pin_0);
+	GPIO_SetBits(GPIOB,GPIO_Pin_9);
 }
 

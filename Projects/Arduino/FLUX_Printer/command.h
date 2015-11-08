@@ -10,6 +10,8 @@
 //#define SetHeaterOn() GPIO_SetBits(HeaterGPIO,HeaterPin);
 //#define SetHeaterOff() GPIO_ResetBits(HeaterGPIO,HeaterPin);
 
+#define Extruder_Cmd_Timeout 300000
+#define Laser_Cmd_Timeout 1200
 
 typedef enum
 {
@@ -18,18 +20,50 @@ typedef enum
 	ID1_Channel
 }ADC_Channel_Type;
 
+typedef enum
+{
+	STATE_OK			=0x00,
+	UNKNOW_MODULE		=0x01,
+	SENSOR_FAILURE		=0x02,
+	NO_HELLO			=0x04,
+	SHAKE				=0x08,
+	TILT				=0x10,
+	PID_OUT_OF_CONTROL	=0x20,
+	FAN_FAILURE			=0x40,
+}Module_State_Enum;
 
-void Xcode_Handler();
+//typedef struct
+//{
+//	bool Unknow_Module;
+//	bool Sensor_Failure;
+//	bool No_Hello;
+//	bool Shake;
+//	bool Tilt;
+//	bool PID_Out_Of_Control;
+//	bool Fan_Failure;
+//}Module_State_Type;
+
+void Xcode_Handler(void);
 
 bool Write_ID(uint32_t ID);
 
-uint32_t Read_ID();
+uint32_t Read_ID(void);
 
 bool IsNumber(char *NumberString);
 
-void CommandTimeoutDetection();
+void CommandTimeoutDetection(void);
 
 uint16_t Read_ADC_Value(ADC_Channel_Type channel);//return 0~4095 adc value
 
+void Module_State_Initial(void);
 
+uint32_t Get_UUID(void);
+
+void Set_Module_State(Module_State_Enum state);
+
+void Reset_Module_State(Module_State_Enum state);
+
+bool Cmd_Checksum_Validation(char * Cmd_Data,uint16_t Length);
+
+bool Ascii_Checksum_Compare(char * str_Data,uint8_t checksum);
 

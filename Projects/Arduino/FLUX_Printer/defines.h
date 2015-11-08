@@ -1,5 +1,5 @@
 #define Firmware_Version	1.0922
-
+#define STM32F0_UUID ((uint32_t *)0x1FFFF7AC)
 //#define PRINT_DEBUG_MESSAGE 1
 //#define FLUX_LASER_MODULE 1
 //#define FLUX_3DPRINTER_MODULE 2

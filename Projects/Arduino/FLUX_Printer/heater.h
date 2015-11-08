@@ -4,7 +4,7 @@
 #define Temperature_Offset 0.0
 #define PID_Period_Time 1
 #define Kp_Default 30.0
-#define Ki_Default 0.52
+#define Ki_Default 0.53
 #define Kd_Default 10000.0
 //#define Kp_Default 30.0
 //#define Ki_Default 0.53
@@ -21,14 +21,16 @@
 #define K1 0.95 // Smoothing factor within the PID
 #define K2 (1.0 - K1)
 #define ADC_Sample_Times 50
-
-float	Read_Temperature();//return temperature*10
+#define Exhalation_Fan_Close_Temp 40.0
+float	Read_Temperature(void);//return temperature*10
 void	Set_Heater_PWM(uint8_t PWM);//set heater pwm 0~255
-uint8_t Get_Pid_Output();
-void	PID_Control();
-void	PID_Handler();
-void 	Disable_All_Heater();
-void 	PID_Autotune();
-uint8_t PID_Compute();
-uint16_t Get_Pid_Output_Uint16();
+uint8_t Get_Pid_Output(void);
+void	PID_Control(void);
+void	PID_Handler(void);
+void 	Disable_All_Heater(void);
+void 	PID_Autotune(void);
+uint8_t PID_Compute(void);
+uint16_t Get_Pid_Output_Uint16(void);
 void Set_Heater_PWM_Uint16(uint16_t PWM);
+void Set_Temperature(float setpoint);
+

@@ -3,6 +3,7 @@
 #include "stm32f0xx_flash.h"
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
 #include "uart.h"
 #include "heater.h"
 #include "defines.h"
@@ -10,63 +11,114 @@
 #include "Extruder_One_Module.h"
 #include "Extruder_Duo_Module.h"
 #include "Six_Axis_Sensor.h"
+#include "utilities.h"
+#include "fan.h"
 
 const char Flux_Cmd_Header[] = "1"; //FLUX command header=1,user defined header=0;
-
-bool Already_Hello=FALSE;
+volatile uint32_t Module_State=0;
+volatile bool Debug_Mode=FALSE;
 
 extern Six_Axis_Sensor_State_Type Six_Axis_Sensor_State;
 extern char buff_Uart1[100];//command data buffer
 extern Uart_BufferType CmdBuffer;
-//extern HeaterState_Type Heater_State;
 extern ModuleMode_Type ModuleMode;
+extern volatile uint32_t CmdTimeout_count;
 
 void ToLowerCase(Uart_BufferType *buff);
 void ToUpperCase(Uart_BufferType *buff);
 
 extern void resetUartBuffer(Uart_BufferType *buff);
 
+void Module_State_Initial(void){
+	Set_Module_State(NO_HELLO);//set initial error= no hello
+}
 
+void Set_Module_State(Module_State_Enum state){
+	Module_State |= (uint32_t)state;
+}
 
+void Reset_Module_State(Module_State_Enum state){
+	Module_State &= ~((uint32_t)state);
+}
 
-
-void Xcode_Handler(){
+void Xcode_Handler(void){
 	
 	char *strSplit;	//For parameter retriving 
-	char strTemp[100];
+	//char strTemp[100];
+	
+	//command timeout check
+	if(!Debug_Mode){
+		switch(ModuleMode){
+			case FLUX_ONE_EXTRUDER_MODULE:
+				if(CmdTimeout_count>Extruder_Cmd_Timeout)
+					Set_Temperature(0);
+					if(Read_Temperature()<0.1)
+						Set_Inhalation_Fan_PWM(0);
+				break;
+			case FLUX_DUO_EXTRUDER_MODULE:
+				//close duo extruder
+				if(CmdTimeout_count>Extruder_Cmd_Timeout)
+					Set_Temperature(0);
+				break;
+			case FLUX_LASER_MODULE:
+				//close laser
+				if(CmdTimeout_count>Laser_Cmd_Timeout)
+					Laser_Switch_Off();
+				break;
+			case Unknow:
+				//??
+				break;
+		}
+	}
+	
 	if(!CmdBuffer.Received){//Detect data ending('\n') to handle a command
 		return;
 	}
 	
 	//a command received...
 	
-	//checksum caculation
+	//Debug mode
+	if(!strcmp(CmdBuffer.Data,"1 DEBUG") || !strcmp(CmdBuffer.Data,"1 debug")){
+		//the command is not for this module
+		Debug_Mode=TRUE;
+	}else{
+		//checksum caculation
+		if(!Cmd_Checksum_Validation(CmdBuffer.Data,CmdBuffer.Length) && !Debug_Mode){
+			resetUartBuffer(&CmdBuffer);//clear command data buffer
+			return;
+		}
+	}
+	
+	
+		
 	//command error check()
 	
-	ToUpperCase(&CmdBuffer);
 	
 	//check command header
 	strSplit = strtok(CmdBuffer.Data, " ");
-	if(!strcmp(strSplit,Flux_Cmd_Header)){
-		printf("1 ");
-	}else{
+	if(strcmp(strSplit,Flux_Cmd_Header)){
 		//the command is not for this module
 		resetUartBuffer(&CmdBuffer);//clear command data buffer
 		return;
 	}
 	
+	ToUpperCase(&CmdBuffer);
+	
 	switch(ModuleMode){
 			case FLUX_ONE_EXTRUDER_MODULE:
 				Extruder_One_Cmd_Handler();
+				CmdTimeout_count=0;
 				break;
 			case FLUX_DUO_EXTRUDER_MODULE:
 				Extruder_Duo_Cmd_Handler();
+				CmdTimeout_count=Extruder_Cmd_Timeout;
 				break;
 			case FLUX_LASER_MODULE:
 				Laser_Cmd_Handler();
+				CmdTimeout_count=Laser_Cmd_Timeout;
 				break;
 			case Unknow:
-				printf("ER:4 UNKNOW_MODULE\n");
+				//??
 				break;
 	}
 	
@@ -74,7 +126,12 @@ void Xcode_Handler(){
 
 }
 
-uint32_t Read_ID(){
+uint32_t Get_UUID(void){
+	return *( uint32_t *)STM32F0_UUID;
+}
+
+uint32_t Read_ID(void){
+	//return *(__IO uint32_t *)FLASH_USER_END_ADDR ;
 	return *(__IO uint32_t *)FLASH_USER_END_ADDR ;
 }
 
@@ -84,7 +141,7 @@ bool Write_ID(uint32_t ID){
 	FLASH_ClearFlag(FLASH_FLAG_BSY | FLASH_FLAG_EOP | FLASH_FLAG_PGERR | FLASH_FLAG_WRPERR); 
 	FLASH_ErasePage(FLASH_USER_END_ADDR);
 	FLASH_ProgramWord(FLASH_USER_END_ADDR , ID);
-	FLASH_ProgramWord(FLASH_USER_END_ADDR+4	, (ID^1));
+	FLASH_ProgramWord(FLASH_USER_END_ADDR+4	, (ID^0x12345678));
 	FLASH_Lock();
 
 	ID_Verify = *(__IO uint32_t *)FLASH_USER_END_ADDR ;
@@ -111,7 +168,31 @@ bool IsNumber(char *NumberString){
 	return TRUE;
 }
 
-void CommandTimeoutDetection(){
+bool Cmd_Checksum_Validation(char * Cmd_Data,uint16_t Length){
+	char str_Temp[300];
+	
+	while(Length){
+		if(Cmd_Data[--Length]=='*'){
+			strncpy(str_Temp,Cmd_Data,Length);
+			str_Temp[Length]='\0';
+			if(Ascii_Checksum_Compare(str_Temp,(uint8_t)atoi(&Cmd_Data[Length+1])))
+				return TRUE;
+			else
+				return FALSE;
+			
+		}
+	}
+	return FALSE;
+}
+bool Ascii_Checksum_Compare(char * str_Data,uint8_t checksum){
+	//printf("checksum=%d\n",Get_Checksum(str_Data,strlen(str_Data)));
+	if(Get_Checksum(str_Data,strlen(str_Data))==checksum)
+		return TRUE;
+	else
+		return FALSE;
+}
+
+void CommandTimeoutDetection(void){
 	//TODO{
 	//	關雷射頭開關、加熱頭、風扇關?
 	//}
@@ -134,7 +215,6 @@ void ToUpperCase(Uart_BufferType *buff){
 //return 0~4095 adc value
 uint16_t Read_ADC_Value(ADC_Channel_Type channel){
 	ADC_InitTypeDef     ADC_InitStructure;
-
 	/* ADCs DeInit */  
 	ADC_DeInit(ADC1);
 

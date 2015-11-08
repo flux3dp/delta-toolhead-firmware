@@ -19,7 +19,7 @@ int fputc(int ch, FILE *f)
 }
 
 
-void Usart1_ReadLine(){
+void Usart1_ReadLine(void){
 
 	if(CmdBuffer.Length>0 && *CmdBuffer.TimeoutCounter > 10){ //command timeout(10ms) checking 
 		resetUartBuffer(&CmdBuffer);
@@ -38,8 +38,11 @@ void Usart1_ReadLine(){
 					CmdBuffer.Received=FALSE;
 				}else{	//receive ending character:'\n'
 					CmdBuffer.Received=TRUE;
+					//CmdBuffer.Data[CmdBuffer.Length++]='\n';
 					CmdBuffer.Data[CmdBuffer.Length]='\0';
-					printf("%s\n",CmdBuffer.Data);
+					if(CmdBuffer.Data[CmdBuffer.Length-1]=='\r')
+						CmdBuffer.Data[--CmdBuffer.Length]='\0';
+					//printf("%s\n",CmdBuffer.Data);
 				}
 			}
 			
@@ -175,6 +178,7 @@ char *itoa(int value, char *string, int radix)
 } /* NCL_Itoa */
 
 void resetUartBuffer(Uart_BufferType *buff){
+	buff->Size=500;
 	buff->Received=FALSE;
 	buff->Length=0;
 	*buff->TimeoutCounter=0;

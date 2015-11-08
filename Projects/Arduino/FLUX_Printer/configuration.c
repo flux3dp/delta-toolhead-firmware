@@ -5,29 +5,33 @@
 #include "command.h"
 #include "defines.h"
 #include <stdio.h>
+#include "utilities.h"
+#include "Six_Axis_Sensor.h"
 
 ModuleMode_Type ModuleMode=Unknow;
+extern volatile uint32_t Module_State;
 
-void Module_Initial(){	
-	Module_Recognition();//set up module mode
+void Module_Initial(void){	
+	
+	Module_Recognition();//set up module mode.
 	ID_Initial();
 	
 }
 
-void ID_Initial(){
+void ID_Initial(void){
 	__IO uint32_t ID,checksum;
 	ID=*(__IO uint32_t *)FLASH_USER_END_ADDR;
 	checksum=*(__IO uint32_t *)(FLASH_USER_END_ADDR+4);
-	if((ID^1) != checksum){
-		Write_ID((uint32_t)0x1234);
+	if((ID^0x12345678) != checksum){
+		Write_ID((uint32_t)(ABS_F(Read_Axis_Value(Gyro_X))*100000000));//not a good idea to generate a random number
 	}
 }
-void Module_Recognition(){
+void Module_Recognition(void){
 	uint16_t ADC_Value;
 	ADC_Config();	//config all ADC
 	ADC_Value=Read_ADC_Value(ID0_Channel);
 	
-	//read adc value to recognize module and set
+	//read adc value to recognize module
 	if(ADC_Value >= Heater_ADC_Min_Value){
 		ModuleMode = FLUX_ONE_EXTRUDER_MODULE;
 	}else if(ADC_Value >= Laser_ADC_Min_Value && ADC_Value < Heater_ADC_Min_Value){
@@ -35,11 +39,38 @@ void Module_Recognition(){
 	}else{
 		//no such module
 		ModuleMode = Unknow;
+		Set_Module_State(UNKNOW_MODULE);
+		//Module_State|=UNKNOW_MODULE;
 	}
 }
 
-void ADC_Config(){
-	ADC_InitTypeDef     ADC_InitStructure;
+void NVIC_Configuration(void)
+{
+	NVIC_InitTypeDef NVIC_InitStructure;
+	
+	/* set up the USART1 interrupt priority */
+	NVIC_InitStructure.NVIC_IRQChannel = USART1_IRQn;
+	NVIC_InitStructure.NVIC_IRQChannelPriority = 0;
+	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
+	NVIC_Init(&NVIC_InitStructure);
+	
+	/* set up the TIM6 global interrupt priority */
+	NVIC_InitStructure.NVIC_IRQChannel = TIM6_DAC_IRQn;
+	NVIC_InitStructure.NVIC_IRQChannelPriority = 1;
+	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
+	NVIC_Init(&NVIC_InitStructure);
+	
+	/* Enable and set EXTI4_15 Interrupt */
+	NVIC_InitStructure.NVIC_IRQChannel = EXTI4_15_IRQn;
+	NVIC_InitStructure.NVIC_IRQChannelPriority = 0x00;
+	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
+	NVIC_Init(&NVIC_InitStructure);
+
+}
+
+//ID0 & ID1 adc configuration
+void ADC_Config(void){
+	//ADC_InitTypeDef     ADC_InitStructure;
 	GPIO_InitTypeDef    GPIO_InitStructure;
 
 	/* GPIOA Periph clock enable */
@@ -57,7 +88,7 @@ void ADC_Config(){
 	ADC_DeInit(ADC1);
 }
 
-void Uart1_Config()
+void Uart1_Config(void)
 {				
 	USART_InitTypeDef USART_InitStructure;
 	GPIO_InitTypeDef GPIO_InitStructure;
@@ -104,14 +135,34 @@ void Uart1_Config()
 	NVIC_EnableIRQ(USART1_IRQn);	
 }		
 
-void Uart1_ISR_Enable(){
+void Uart1_ISR_Enable(void){
 
 	USART_ITConfig(USART1, USART_IT_RXNE, ENABLE);
 
 	USART_Cmd(USART1,ENABLE);
 }
 
-void Heater_Config(){
+void PID_Timer_Config(void){
+	
+	TIM_TimeBaseInitTypeDef  TIM_TimeBaseStructure;
+	RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM6, ENABLE); 
+	//Configure timer clock
+	TIM_TimeBaseStructure.TIM_Prescaler = 48-1;//1000000 Hz
+	TIM_TimeBaseStructure.TIM_CounterMode = TIM_CounterMode_Up;
+	TIM_TimeBaseStructure.TIM_Period = 0x2710;//10000(100 Hz=0.01s)
+	TIM_TimeBaseStructure.TIM_ClockDivision = TIM_CKD_DIV1;
+	TIM_TimeBaseStructure.TIM_RepetitionCounter = 0;
+	
+	TIM_TimeBaseInit(TIM6, &TIM_TimeBaseStructure);
+	
+	/* TIM enable counter */
+	TIM_Cmd(TIM6, ENABLE);
+
+	/* TIM IT enable */
+	TIM_ITConfig(TIM6, TIM_IT_Update, ENABLE);
+}
+
+void Heater_Config(void){
 	GPIO_InitTypeDef GPIO_InitStructure; 
 	TIM_TimeBaseInitTypeDef  TIM_TimeBaseStructure;
 	TIM_OCInitTypeDef        TIM_OCInitStructure;
@@ -121,6 +172,8 @@ void Heater_Config(){
 	/* GPIOA Periph clock enable */
 	RCC_AHBPeriphClockCmd(RCC_AHBPeriph_GPIOA, ENABLE);
 
+	RCC_APB2PeriphClockCmd(RCC_APB2Periph_TIM1, ENABLE); 
+	
 	//Configure thermal reading GPIO PA0
 	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_0;
 	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AN;
@@ -135,7 +188,7 @@ void Heater_Config(){
 	GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;	//無提升電阻
 	GPIO_Init(GPIOB, &GPIO_InitStructure);
 	
-	//Configure Timer for PWM
+	//Configure timer clock
 	TIM_TimeBaseStructure.TIM_Prescaler = 0;
 	TIM_TimeBaseStructure.TIM_CounterMode = TIM_CounterMode_Up;
 	TIM_TimeBaseStructure.TIM_Period = (SystemCoreClock / 1000 ) - 1; //Default frequency is 1KHz
@@ -152,7 +205,7 @@ void Heater_Config(){
 	TIM_OCInitStructure.TIM_OCIdleState = TIM_OCIdleState_Set;
 	TIM_OCInitStructure.TIM_OCNIdleState = TIM_OCIdleState_Reset;
 
-	RCC_APB2PeriphClockCmd(RCC_APB2Periph_TIM1, ENABLE); 
+	
 
 	//Connect TIM Channels to Port Alternate Function 
 	GPIO_PinAFConfig(GPIOB, GPIO_PinSource13, GPIO_AF_2);        
@@ -171,7 +224,7 @@ void Heater_Config(){
 	TIM1->CCR1 = 65535;  
 }
 
-void Fan_Exhalation_Config(){
+void Fan_Exhalation_Config(void){
 	TIM_TimeBaseInitTypeDef  TIM_TimeBaseStructure;
 	TIM_OCInitTypeDef        TIM_OCInitStructure;
 	GPIO_InitTypeDef GPIO_InitStructure; 
@@ -222,7 +275,7 @@ void Fan_Exhalation_Config(){
 	TIM16->CCR1 = 65535;
 }
 
-void Fan_Inhalation_Config(){
+void Fan_Inhalation_Config(void){
 	TIM_TimeBaseInitTypeDef  TIM_TimeBaseStructure;
 	TIM_OCInitTypeDef        TIM_OCInitStructure;
 	GPIO_InitTypeDef GPIO_InitStructure; 
@@ -272,7 +325,45 @@ void Fan_Inhalation_Config(){
 	TIM17->CCR1 = 65535;
 }
 
-void Thermistor_ADC_Config()
+void Fan_Inhalation_RPM_IO_Config(void){
+	GPIO_InitTypeDef GPIO_InitStructure; 
+	EXTI_InitTypeDef   EXTI_InitStructure;
+	/* GPIOB clock enable */ 
+	RCC_AHBPeriphClockCmd(RCC_AHBPeriph_GPIOB, ENABLE); 
+	/* Enable SYSCFG clock */
+	RCC_APB2PeriphClockCmd(RCC_APB2Periph_SYSCFG, ENABLE);
+	
+	//Config fan rpm reading GPIO PB12 & PB14
+	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_12;
+	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN;
+	GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
+	GPIO_Init(GPIOB, &GPIO_InitStructure);
+
+	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_14;
+	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN;
+	GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
+	GPIO_Init(GPIOB, &GPIO_InitStructure);
+	
+	/* Connect EXTI12 Line to PB12 pin */
+	SYSCFG_EXTILineConfig(EXTI_PortSourceGPIOB, EXTI_PinSource12);
+
+	/* Connect EXTI14 Line to PB14 pin */
+	SYSCFG_EXTILineConfig(EXTI_PortSourceGPIOB, EXTI_PinSource14);
+	
+	/* Configure EXTI12 line */
+	EXTI_InitStructure.EXTI_Line = EXTI_Line12;  
+	EXTI_InitStructure.EXTI_Mode = EXTI_Mode_Interrupt;
+	EXTI_InitStructure.EXTI_Trigger = EXTI_Trigger_Falling;
+	EXTI_InitStructure.EXTI_LineCmd = ENABLE;
+	EXTI_Init(&EXTI_InitStructure);
+
+	/* Configure EXTI14 line */
+	EXTI_InitStructure.EXTI_Line = EXTI_Line14;
+	EXTI_Init(&EXTI_InitStructure);
+
+}
+
+void Thermistor_ADC_Config(void)
 {
 	ADC_InitTypeDef     ADC_InitStructure;
 	GPIO_InitTypeDef    GPIO_InitStructure;
@@ -319,11 +410,12 @@ void Thermistor_ADC_Config()
   
 }
 
-void Laser_Switch_Config(){
+void Laser_Switch_Config(void){
 	GPIO_InitTypeDef GPIO_InitStructure; 
 	/* GPIOA Periph clock enable */
 	RCC_AHBPeriphClockCmd(RCC_AHBPeriph_GPIOA, ENABLE); 
-
+	RCC_AHBPeriphClockCmd(RCC_AHBPeriph_GPIOB, ENABLE); 
+	
 	/* Configure PA0 in output pushpull mode */
 	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_0;
 	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;
@@ -332,5 +424,44 @@ void Laser_Switch_Config(){
 	GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;	//無提升電阻
 	GPIO_Init(GPIOA, &GPIO_InitStructure);
 	
+	/* Configure PB9 in output pushpull mode */
+	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_9;
+	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;
+	GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
+	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+	GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;	//無提升電阻
+	GPIO_Init(GPIOB, &GPIO_InitStructure);
+	
 	GPIO_ResetBits(GPIOA,GPIO_Pin_0);
+	GPIO_SetBits(GPIOB,GPIO_Pin_9);
 }
+
+void IWDG_Configuration(void)
+{
+ 	RCC_LSICmd(ENABLE);                              //LSI
+    while(RCC_GetFlagStatus(RCC_FLAG_LSIRDY)==RESET);
+
+	IWDG_WriteAccessCmd(IWDG_WriteAccess_Enable);
+	IWDG_SetPrescaler(IWDG_Prescaler_32);//LSI=40kHz
+	IWDG_SetReload(1000);	  //1/40k*1000=800ms ,max 0xFFF  0~4095  
+	IWDG_ReloadCounter();
+	IWDG_Enable();
+}
+
+void Alarm_IO_Config(void){
+	GPIO_InitTypeDef    GPIO_InitStructure;
+	
+	/* GPIOB Periph clock enable */
+	RCC_AHBPeriphClockCmd(RCC_AHBPeriph_GPIOB, ENABLE); 
+
+	/* Configure PB0 in output pushpull mode */
+	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_0;
+	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;
+	GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
+	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+	GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;	//無提升電阻
+	GPIO_Init(GPIOB, &GPIO_InitStructure);
+	
+	Alarm_Off();
+}
+
