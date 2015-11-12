@@ -48,13 +48,15 @@ Note2:if TT:NAN that is target temperature had not been setted
 
 ⇠ `1 ER:4 NO_HELLO\n`
 
-⇠ `1 ER:8 SHAKE\n`
+⇠ `1 ER:8 SENSOR_CALIBRATION\n`
 
-⇠ `1 ER:16 TILT\n`
+⇠ `1 ER:16 SHAKE\n`
 
-⇠ `1 ER:32 PID_OUT_OF_CONTROL\n`
+⇠ `1 ER:32 TILT\n`
 
-⇠ `1 ER:64 FAN_FAILURE\n`
+⇠ `1 ER:64 PID_OUT_OF_CONTROL\n`
+
+⇠ `1 ER:128 FAN_FAILURE\n`
 
 Note: ER are general error responses,all commands could respond,ER:1~64 are only responded by PONG.
 
