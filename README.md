@@ -48,7 +48,7 @@ Note2:if TT:NAN that is target temperature had not been setted
 
 ⇠ `1 ER:4 NO_HELLO\n`
 
-⇠ `1 ER:8 SENSOR_CALIBRATION\n`
+⇠ `1 ER:8 SENSOR_CALIBRATION_FAILURE\n`
 
 ⇠ `1 ER:16 SHAKE\n`
 
