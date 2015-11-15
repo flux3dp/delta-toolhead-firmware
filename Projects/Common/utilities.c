@@ -44,7 +44,7 @@
 /* Global variables ----------------------------------------------------------*/
 uint32_t G_tickValue=0;
 void (*delay)(uint32_t) = delay_ms; //Delay function
-
+volatile uint32_t Time_Count=0;
 
 /* Private variables ---------------------------------------------------------*/
 
@@ -52,6 +52,7 @@ void (*delay)(uint32_t) = delay_ms; //Delay function
 /* Private function prototypes -----------------------------------------------*/
 static void Init_CS(void);
 static void staticDelay(uint32_t);
+
 
 uint8_t Get_Checksum(char *Data,uint16_t length){
 	uint16_t i=0;
@@ -69,9 +70,28 @@ float ABS_F(float value){
 		return value;
 }
 
+uint32_t millis(void){
+	return Time_Count;
+}
 
+int arctan2(int y, int x) {                                    // http://www.dspguru.com/comp.dsp/tricks/alg/fxdatan2.htm
+   int coeff_1 = 128;                                          // angle in Quids (1024 Quids=360°) <<<<<<<<<<<<<<
+   int coeff_2 = 3*coeff_1;
+   float abs_y = ABS_F(y)+1e-10;
+   float r, angle;
 
-
+   if (x >= 0) {
+     r = (x - abs_y) / (x + abs_y);
+     angle = coeff_1 - coeff_1 * r;
+   }  else {
+     r = (x + abs_y) / (abs_y - x);
+     angle = coeff_2 - coeff_1 * r;
+   }
+   if (y < 0)
+	   return (int)(-angle);
+   else           
+	   return (int)(angle);
+}
 
 
 

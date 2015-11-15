@@ -2,7 +2,7 @@
 
 #define Max_Temperature	235.0
 #define Temperature_Offset 0.0
-#define PID_Period_Time 1
+#define PID_Period_Time 20
 #define Kp_Default 30.0
 #define Ki_Default 0.53
 #define Kd_Default 10000.0

@@ -20,7 +20,7 @@ void Heater_Config(void);
 void ID_Initial(void);
 void Laser_Switch_Config(void);
 void NVIC_Configuration(void);
-void PID_Timer_Config(void);
+void Gerneral_Timer_Config(void);
 void IWDG_Configuration(void);
 void Alarm_IO_Config(void);
 //void Thermistor_ADC_Config();

@@ -1,11 +1,8 @@
-#define Firmware_Version	1.0922
+#define Firmware_Version	1.0924
 #define STM32F0_UUID ((uint32_t *)0x1FFFF7AC)
-//#define PRINT_DEBUG_MESSAGE 1
-//#define FLUX_LASER_MODULE 1
-//#define FLUX_3DPRINTER_MODULE 2
-
-////define this firmware working mode
-//#define FLUX_MODULE_MODE FLUX_3DPRINTER_MODULE
+#define Enable_IWDG 1
+#define Enable_Debug_Msg 1
+#define Function_Test
 
 static const char Vender[] = "FLUX\\ .inc";
 

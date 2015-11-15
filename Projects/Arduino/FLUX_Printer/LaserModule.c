@@ -13,19 +13,17 @@
 extern float Target_Temperature;
 extern volatile uint32_t Module_State;
 extern volatile bool Debug_Mode;
+extern volatile bool Show_Sensor_Data;
 
 void Laser_Cmd_Handler(void){
 	char * Command_Str;
-		
-	//uint16_t Real_Temperatuer=0;
-	uint16_t Int_Temp;
-	float 	 Float_Temp;
-	//uint16_t Fan_Pwm;
+
 	char Response_Buffer[200];
 	Command_Str = strtok(NULL, " ");
 	
-	if(!strcmp(Command_Str, "HELLO")){	
+	if(!strcmp(Command_Str, "HELLO")){		
 		Debug_Mode=FALSE;
+		Show_Sensor_Data=FALSE;
 		Reset_Module_State(NO_HELLO);
 		sprintf(Response_Buffer,"1 OK HELLO TYPE:LASER ID:%u VENDOR:%s FIRMWARE:OHMAMA VERSION:%.4lf LASER ",Get_UUID(),Vender,Firmware_Version);
 
@@ -33,6 +31,8 @@ void Laser_Cmd_Handler(void){
 		Reset_Module_State(NO_HELLO);
 		sprintf(Response_Buffer,"1 OK HELLO TYPE:LASER ID:%u VENDOR:%s FIRMWARE:OHMAMA VERSION:%.4lf LASER ",Get_UUID(),Vender,Firmware_Version);
 		
+	}else if(!strcmp(Command_Str, "SHOW")){
+		Show_Sensor_Data=TRUE;
 	}else if(!strcmp(Command_Str, "PING")){
 		//error check
 		if(!(Module_State&(SHAKE|TILT)))

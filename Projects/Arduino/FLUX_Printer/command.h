@@ -26,10 +26,11 @@ typedef enum
 	UNKNOW_MODULE		=0x01,
 	SENSOR_FAILURE		=0x02,
 	NO_HELLO			=0x04,
-	SHAKE				=0x08,
-	TILT				=0x10,
-	PID_OUT_OF_CONTROL	=0x20,
-	FAN_FAILURE			=0x40,
+	SENSOR_CALIBRATION_FAILURE=0x08,
+	SHAKE				=0x10,
+	TILT				=0x20,
+	PID_OUT_OF_CONTROL	=0x40,
+	FAN_FAILURE			=0x80,
 }Module_State_Enum;
 
 //typedef struct

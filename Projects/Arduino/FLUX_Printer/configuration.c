@@ -48,21 +48,28 @@ void NVIC_Configuration(void)
 {
 	NVIC_InitTypeDef NVIC_InitStructure;
 	
+	
+	/* set up the SysTick interrupt priority */
+	NVIC_InitStructure.NVIC_IRQChannel = SysTick_IRQn;
+	NVIC_InitStructure.NVIC_IRQChannelPriority = 0;
+	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
+	NVIC_Init(&NVIC_InitStructure);
+	
 	/* set up the USART1 interrupt priority */
 	NVIC_InitStructure.NVIC_IRQChannel = USART1_IRQn;
-	NVIC_InitStructure.NVIC_IRQChannelPriority = 0;
+	NVIC_InitStructure.NVIC_IRQChannelPriority = 1;
 	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
 	NVIC_Init(&NVIC_InitStructure);
 	
 	/* set up the TIM6 global interrupt priority */
 	NVIC_InitStructure.NVIC_IRQChannel = TIM6_DAC_IRQn;
-	NVIC_InitStructure.NVIC_IRQChannelPriority = 1;
+	NVIC_InitStructure.NVIC_IRQChannelPriority = 2;
 	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
 	NVIC_Init(&NVIC_InitStructure);
 	
 	/* Enable and set EXTI4_15 Interrupt */
 	NVIC_InitStructure.NVIC_IRQChannel = EXTI4_15_IRQn;
-	NVIC_InitStructure.NVIC_IRQChannelPriority = 0x00;
+	NVIC_InitStructure.NVIC_IRQChannelPriority = 3;
 	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
 	NVIC_Init(&NVIC_InitStructure);
 
@@ -142,18 +149,23 @@ void Uart1_ISR_Enable(void){
 	USART_Cmd(USART1,ENABLE);
 }
 
-void PID_Timer_Config(void){
-	
+//PID control timer.Default update period:20ms
+void Gerneral_Timer_Config(void){
+	uint16_t PrescalerValue;
 	TIM_TimeBaseInitTypeDef  TIM_TimeBaseStructure;
 	RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM6, ENABLE); 
+	
+	PrescalerValue = (uint16_t) (SystemCoreClock  / 1000) - 1;
 	//Configure timer clock
-	TIM_TimeBaseStructure.TIM_Prescaler = 48-1;//1000000 Hz
+	TIM_TimeBaseStructure.TIM_Period = 20;
+	TIM_TimeBaseStructure.TIM_Prescaler = 0;
+	TIM_TimeBaseStructure.TIM_ClockDivision = 0;
 	TIM_TimeBaseStructure.TIM_CounterMode = TIM_CounterMode_Up;
-	TIM_TimeBaseStructure.TIM_Period = 0x2710;//10000(100 Hz=0.01s)
-	TIM_TimeBaseStructure.TIM_ClockDivision = TIM_CKD_DIV1;
-	TIM_TimeBaseStructure.TIM_RepetitionCounter = 0;
 	
 	TIM_TimeBaseInit(TIM6, &TIM_TimeBaseStructure);
+
+	/* Prescaler configuration */
+	TIM_PrescalerConfig(TIM6, PrescalerValue, TIM_PSCReloadMode_Immediate);
 	
 	/* TIM enable counter */
 	TIM_Cmd(TIM6, ENABLE);
@@ -459,7 +471,7 @@ void Alarm_IO_Config(void){
 	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;
 	GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
 	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-	GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;	//無提升電阻
+	GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_UP;	//無提升電阻
 	GPIO_Init(GPIOB, &GPIO_InitStructure);
 	
 	Alarm_Off();

@@ -17,6 +17,7 @@
 const char Flux_Cmd_Header[] = "1"; //FLUX command header=1,user defined header=0;
 volatile uint32_t Module_State=0;
 volatile bool Debug_Mode=FALSE;
+volatile bool Show_Sensor_Data=FALSE;
 
 extern Six_Axis_Sensor_State_Type Six_Axis_Sensor_State;
 extern char buff_Uart1[100];//command data buffer
@@ -31,6 +32,7 @@ extern void resetUartBuffer(Uart_BufferType *buff);
 
 void Module_State_Initial(void){
 	Set_Module_State(NO_HELLO);//set initial error= no hello
+	Set_Module_State(SENSOR_CALIBRATION_FAILURE);
 }
 
 void Set_Module_State(Module_State_Enum state){
@@ -79,7 +81,7 @@ void Xcode_Handler(void){
 	
 	//Debug mode
 	if(!strcmp(CmdBuffer.Data,"1 DEBUG") || !strcmp(CmdBuffer.Data,"1 debug")){
-		//the command is not for this module
+		
 		Debug_Mode=TRUE;
 	}else{
 		//checksum caculation

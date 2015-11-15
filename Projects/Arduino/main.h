@@ -41,9 +41,7 @@
 #include "defines.h"
 #include "utilities.h"
 
-#define Enable_IWDG 1
-#define Enable_Debug_Msg 1
-#define Function_Test
+
 /* Exported constants --------------------------------------------------------*/
 /* Exported macros -----------------------------------------------------------*/
 /* typedef -------------------------------------------------------------------*/

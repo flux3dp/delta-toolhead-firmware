@@ -93,7 +93,8 @@ void delay_ms(uint32_t n_ms);
 void delay_10us(uint32_t n_10us);
 uint8_t Get_Checksum(char *Data,uint16_t length);
 float ABS_F(float value);
-
+uint32_t millis(void);
+int arctan2(int y, int x);
 //void DISCOVERY_Configuration(void);
 //void INT_EXTI_Config(void);
 //void INT1_EXTI_Config(void);

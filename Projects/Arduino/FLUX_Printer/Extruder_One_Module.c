@@ -16,6 +16,7 @@ extern volatile uint32_t Module_State;
 extern volatile uint16_t Fan1_Count;
 extern volatile uint16_t Fan2_Count;
 extern volatile bool Debug_Mode;
+extern volatile bool Show_Sensor_Data;
 
 void Extruder_One_Cmd_Handler(void){
 	char * Command_Str;
@@ -28,16 +29,16 @@ void Extruder_One_Cmd_Handler(void){
 	Command_Str = strtok(NULL, " ");
 	
 	if(!strcmp(Command_Str, "HELLO")){	
-		//Module_State.No_Hello=FALSE;
-		//Module_State &= !NO_HELLO;
 		Debug_Mode=FALSE;
+		Show_Sensor_Data=FALSE;
 		Reset_Module_State(NO_HELLO);
 		sprintf(Response_Buffer,"1 OK HELLO TYPE:EXTRUDER ID:%u VENDOR:%s FIRMWARE:OHMAMA VERSION:%.4lf EXTRUDER:1 MAX_TEMPERATURE:%.1lf ",Get_UUID(),Vender,Firmware_Version,Max_Temperature);
 
 	}else if(!strcmp(Command_Str, "DEBUG")){
 		Reset_Module_State(NO_HELLO);
 		sprintf(Response_Buffer,"1 OK HELLO TYPE:EXTRUDER ID:%u VENDOR:%s FIRMWARE:OHMAMA VERSION:%.4lf EXTRUDER:1 MAX_TEMPERATURE:%.1lf ",Get_UUID(),Vender,Firmware_Version,Max_Temperature);
-		
+	}else if(!strcmp(Command_Str, "SHOW")){
+		Show_Sensor_Data=TRUE;
 	}else if(!strcmp(Command_Str, "PING")){
 		//uint8_t Err_Sum;
 		//error check

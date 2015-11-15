@@ -36,10 +36,9 @@
 /* Private variables ---------------------------------------------------------*/
 /* Private function prototypes -----------------------------------------------*/
 /* Private functions ---------------------------------------------------------*/
+extern volatile uint32_t Time_Count;
 extern uint32_t CmdTimeout_count;
-extern uint32_t Sensor_Init_Timeout_count;
-extern uint32_t PID_Time_Count;
-extern volatile uint32_t SensorTime_Count;
+
 /******************************************************************************/
 /*            Cortex-M0 Processor Exceptions Handlers                         */
 /******************************************************************************/
@@ -91,10 +90,9 @@ void PendSV_Handler(void)
   */
 void SysTick_Handler(void)
 {
-	Sensor_Init_Timeout_count++;
-	PID_Time_Count++;
-	SensorTime_Count++;
+	Time_Count++;
 	CmdTimeout_count++;
+
 	if(G_tickValue)
 		G_tickValue--;
 

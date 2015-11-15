@@ -11,14 +11,12 @@
 ******************************************************************************/
 #include "lis302dl.h"
 #include "Six_Axis_Sensor.h"
-
+#include "utilities.h"
 /**
   * @brief  This function initializes I2C1.
   * @param  None
   * @retval None
   */
-  
-extern uint32_t Sensor_Init_Timeout_count;
 
 void LSM6DS3_Setup(void)
 {
@@ -78,7 +76,7 @@ void LSM6DS3_Setup(void)
   I2C_InitStructure.I2C_DigitalFilter = 0;
   I2C_InitStructure.I2C_Mode = I2C_Mode_I2C;
   I2C_InitStructure.I2C_OwnAddress1 = 0;
-  I2C_InitStructure.I2C_Timing = 0x40B22536;
+  I2C_InitStructure.I2C_Timing = 0x00731012;//0x40B22536; 0x10420F13; 0x00731012;
   I2C_Init(I2C1, &I2C_InitStructure);
   
   //(#) Optionally you can enable/configure the following parameters without
@@ -113,33 +111,30 @@ void LSM6DS3_Setup(void)
 uint8_t LSM6DS3_RegRead(uint8_t reg)
 {
 	uint8_t tmp = 0xFF;
-	
-	Sensor_Init_Timeout_count=0;
-	//I2C1->CR2 = (uint32_t)(LIS302DL_ADDR) | (uint32_t)(1 << 16) | I2C_CR2_START ;
+	uint32_t StartTime;
+
 	I2C_TransferHandling(I2C1, LIS302DL_ADDR, 1, I2C_SoftEnd_Mode, I2C_Generate_Start_Write);
+	StartTime=millis();
 	while(!(I2C1->ISR & I2C_ISR_TXIS)){
-		if(Sensor_Init_Timeout_count > I2C_Timeout) break;
+		if(millis()-StartTime > I2C_Timeout) break;
 	}
-	
-	Sensor_Init_Timeout_count=0;	
-	//I2C1->TXDR = (uint8_t)(addr);
+		
 	I2C_SendData(I2C1, reg);
+	StartTime=millis();
 	while(!(I2C1->ISR & I2C_ISR_TC)){
-		if(Sensor_Init_Timeout_count > I2C_Timeout) break;
+		if(millis()-StartTime > I2C_Timeout) break;
 	}
 		
-	Sensor_Init_Timeout_count=0;
-	//I2C1->CR2 = (uint32_t)(LIS302DL_ADDR) | (uint32_t)(1 << 16) | I2C_CR2_AUTOEND | I2C_CR2_RD_WRN | I2C_CR2_START;
 	I2C_TransferHandling(I2C1, LIS302DL_ADDR, 1, I2C_AutoEnd_Mode, I2C_Generate_Start_Read);
+	StartTime=millis();
 	while(!(I2C1->ISR & I2C_ISR_RXNE)){
-		if(Sensor_Init_Timeout_count > I2C_Timeout) break;
+		if(millis()-StartTime > I2C_Timeout) break;
 	}
 		
-	Sensor_Init_Timeout_count=0;
-	//tmp = (uint8_t)I2C1->RXDR;
 	tmp = I2C_ReceiveData(I2C1);
+	StartTime=millis();
 	while(!(I2C1->ISR & I2C_ISR_STOPF)){
-		if(Sensor_Init_Timeout_count > I2C_Timeout) break;
+		if(millis()-StartTime > I2C_Timeout) break;
 	}
 	
 	I2C1->ICR = I2C_ICR_STOPCF;
@@ -155,35 +150,32 @@ uint8_t LSM6DS3_RegRead(uint8_t reg)
   */
 void LSM6DS3_RegWrite(uint8_t reg, uint8_t data)
 {
-	Sensor_Init_Timeout_count=0;
-	//I2C1->CR2 |= (uint32_t)(LIS302DL_ADDR) | (uint32_t)(1 << 16) | I2C_CR2_RELOAD | I2C_CR2_START ;
+	uint32_t StartTime;
+
 	I2C_TransferHandling(I2C1, LIS302DL_ADDR, 1, I2C_Reload_Mode, I2C_Generate_Start_Write);
+	StartTime=millis();
 	while(!(I2C1->ISR & I2C_ISR_TXIS)){
-		if(Sensor_Init_Timeout_count > I2C_Timeout) break;
+		if(millis()-StartTime > I2C_Timeout) break;
 	}
 
-	Sensor_Init_Timeout_count=0;
-	//I2C1->TXDR = (uint8_t)(addr);
 	I2C_SendData(I2C1, reg);
+	StartTime=millis();
 	while(!(I2C1->ISR & I2C_ISR_TCR)){
-		if(Sensor_Init_Timeout_count > I2C_Timeout) break;
+		if(millis()-StartTime > I2C_Timeout) break;
 	}
 
-	Sensor_Init_Timeout_count=0;
-	//I2C1->CR2 |= I2C_CR2_AUTOEND;
 	I2C_AutoEndCmd(I2C1, ENABLE);
+	StartTime=millis();
 	while(!(I2C1->ISR & I2C_ISR_TXIS)){
-		if(Sensor_Init_Timeout_count > I2C_Timeout) break;
+		if(millis()-StartTime > I2C_Timeout) break;
 	}
 
-	//I2C1->TXDR = data;
 	I2C_SendData(I2C1, data);
 
-	Sensor_Init_Timeout_count=0;
-	//I2C1->CR2 &= ~I2C_CR2_RELOAD;
 	I2C_ReloadCmd(I2C1, DISABLE);
+	StartTime=millis();
 	while(!(I2C1->ISR & I2C_ISR_STOPF)){
-		if(Sensor_Init_Timeout_count > I2C_Timeout) break;
+		if(millis()-StartTime > I2C_Timeout) break;
 	}
 		
 	I2C1->ICR = I2C_ICR_STOPCF;
