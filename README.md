@@ -5,6 +5,7 @@ Printer head firmware protocol
 ➥  `1 HELLO *[CHKSUM]\n` 或 ➥  `1 DEBUG\n`
 
 ⇠ `1 OK HELLO TYPE:EXTRUDER ID:3f1f2a VENDOR:flux\ .inc FIRMWARE:xxxxxx VERSION:0.1.9 EXTRUDER:1 MAX_TEMPERATURE:250 *[CHKSUM]\n`
+⇠ `1 OK HELLO TYPE:LASER ID:3f1f2a VENDOR:flux\ .inc FIRMWARE:xxxxxx VERSION:0.1.9 FOCAL_LENGTH:3.1 *[CHKSUM]\n`
 
 ➥  `1 PING *[CHKSUM]\n`
 
