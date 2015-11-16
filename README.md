@@ -36,9 +36,9 @@ Note2:if TT:NAN that is target temperature had not been setted
 
 ➥  `1 WRITE FL:-3.3 *[CHKSUM]\n`  Focal length in millimeter
 
-⇠ `1 OK *[CHKSUM]\n`
+⇠ `1 OK WRITE *[CHKSUM]\n`
 
-⇠ `1 ER FAILLED\n`
+⇠ `1 ER FAILED\n`
 
 * ERROR CODE
 
