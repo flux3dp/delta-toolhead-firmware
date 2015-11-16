@@ -34,7 +34,7 @@ Note2:if TT:NAN that is target temperature had not been setted
 
 * 焦距寫入
 
-➥  `1 FL:-3.3 *[CHKSUM]\n`  Focal length in millimeter
+➥  `1 WRITE FL:-3.3 *[CHKSUM]\n`  Focal length in millimeter
 
 ⇠ `1 OK *[CHKSUM]\n`
 
