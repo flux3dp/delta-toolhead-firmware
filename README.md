@@ -6,6 +6,8 @@ Printer head firmware protocol
 
 ⇠ `1 OK HELLO TYPE:EXTRUDER ID:3f1f2a VENDOR:flux\ .inc FIRMWARE:xxxxxx VERSION:0.1.9 EXTRUDER:1 MAX_TEMPERATURE:250 *[CHKSUM]\n`
 
+⇠ `1 OK HELLO TYPE:LASER ID:3f1f2a VENDOR:flux\ .inc FIRMWARE:xxxxxx VERSION:0.1.9 FOCAL_LENGTH:3.1 *[CHKSUM]\n`
+
 ➥  `1 PING *[CHKSUM]\n`
 
 ⇠ `1 OK PONG ER:0 RT:123.3,212.3 TT:200.0,230.0 FA:255 *[CHKSUM]\n` (for extruder)
@@ -30,6 +32,13 @@ Note2:if TT:NAN that is target temperature had not been setted
 
 ⇠ `1 OK FAN *[CHKSUM]\n`
 
+* 焦距寫入
+
+➥  `1 WRITE FL:-3.3 *[CHKSUM]\n`  Focal length in millimeter
+
+⇠ `1 OK WRITE *[CHKSUM]\n`
+
+⇠ `1 ER FAILED\n`
 
 * ERROR CODE
 
@@ -41,6 +50,8 @@ Note2:if TT:NAN that is target temperature had not been setted
 ⇠ `1 ER PARAM_OUT_OF_RANGE\n`
 
 ⇠ `1 ER COMMAND_CANNOT_BE_PROCESSSED\n`
+
+⇠ `1 ER FAILLED\n`
 
 ⇠ `1 ER:1 UNKNOW_MODULE\n`
 
