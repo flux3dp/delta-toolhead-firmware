@@ -3,15 +3,13 @@
 #include "gpio.h"
 #include "configuration.h"
 
-//#include "uart.h"
 #define FLASH_PAGE_SIZE         ((uint32_t)0x00000400)   /* FLASH Page Size */
 #define FLASH_USER_START_ADDR   ((uint32_t)0x08000800)   /* Start @ of user Flash area */
 #define FLASH_USER_END_ADDR     ((uint32_t)0x0803FC00)   /* End @ of user Flash area */
-//#define SetHeaterOn() GPIO_SetBits(HeaterGPIO,HeaterPin);
-//#define SetHeaterOff() GPIO_ResetBits(HeaterGPIO,HeaterPin);
 
 #define Extruder_Cmd_Timeout 300000
 #define Laser_Cmd_Timeout 1200
+#define UUID STM32F0_UUID
 
 typedef enum
 {
@@ -46,9 +44,9 @@ typedef enum
 
 void Xcode_Handler(void);
 
-bool Write_ID(uint32_t ID);
+bool Write_Focal_Length(float Focal_Length);
 
-uint32_t Read_ID(void);
+float Read_Focal_Length(void);
 
 bool IsNumber(char *NumberString);
 
@@ -58,7 +56,7 @@ uint16_t Read_ADC_Value(ADC_Channel_Type channel);//return 0~4095 adc value
 
 void Module_State_Initial(void);
 
-uint32_t Get_UUID(void);
+uint32_t * Get_UUID(void);
 
 void Set_Module_State(Module_State_Enum state);
 
@@ -67,4 +65,9 @@ void Reset_Module_State(Module_State_Enum state);
 bool Cmd_Checksum_Validation(char * Cmd_Data,uint16_t Length);
 
 bool Ascii_Checksum_Compare(char * str_Data,uint8_t checksum);
+
+bool Read_Self_Test_IO(void);
+
+void Self_Test(void);
+
 

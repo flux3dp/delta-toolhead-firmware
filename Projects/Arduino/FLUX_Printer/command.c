@@ -10,6 +10,7 @@
 #include "LaserModule.h"
 #include "Extruder_One_Module.h"
 #include "Extruder_Duo_Module.h"
+#include "Unknow_Module.h"
 #include "Six_Axis_Sensor.h"
 #include "utilities.h"
 #include "fan.h"
@@ -27,6 +28,27 @@ extern volatile uint32_t CmdTimeout_count;
 
 void ToLowerCase(Uart_BufferType *buff);
 void ToUpperCase(Uart_BufferType *buff);
+static void Test_Extruder_One(void);
+static void Test_Laser(void);
+static uint32_t Test_Alarm_IO(void);
+
+static uint32_t Test_Sensor_RW(void);
+
+static uint32_t Test_Acceler_Range(void);
+
+static uint32_t Test_Gyro_Range(void);
+
+static uint32_t Test_Laser_PWM_Switch(void);
+
+static uint32_t Test_Laser_Power_Switch(void);
+
+static uint32_t Test_Thermal_Analog_Read(void);
+
+static uint32_t Test_Heater_Output(void);
+
+static uint32_t Test_Fan1_IO(void);
+
+static uint32_t Test_Fan2_IO(void);
 
 extern void resetUartBuffer(Uart_BufferType *buff);
 
@@ -113,14 +135,15 @@ void Xcode_Handler(void){
 				break;
 			case FLUX_DUO_EXTRUDER_MODULE:
 				Extruder_Duo_Cmd_Handler();
-				CmdTimeout_count=Extruder_Cmd_Timeout;
+				CmdTimeout_count=0;
 				break;
 			case FLUX_LASER_MODULE:
 				Laser_Cmd_Handler();
-				CmdTimeout_count=Laser_Cmd_Timeout;
+				CmdTimeout_count=0;
 				break;
 			case Unknow:
-				//??
+				Unknow_Module_Cmd_Handler();
+				CmdTimeout_count=0;
 				break;
 	}
 	
@@ -128,27 +151,34 @@ void Xcode_Handler(void){
 
 }
 
-uint32_t Get_UUID(void){
-	return *( uint32_t *)STM32F0_UUID;
+uint32_t * Get_UUID(void){
+	return ( uint32_t *)STM32F0_UUID;
 }
 
-uint32_t Read_ID(void){
-	//return *(__IO uint32_t *)FLASH_USER_END_ADDR ;
-	return *(__IO uint32_t *)FLASH_USER_END_ADDR ;
+float Read_Focal_Length(void){
+	int32_t FL_Data,Checksum;
+	FL_Data=*(__IO uint32_t *)FLASH_USER_END_ADDR ;
+	Checksum=*(__IO uint32_t *)(FLASH_USER_END_ADDR+4);
+	if((FL_Data^0x12345678) == Checksum){
+		return (float)FL_Data/100;
+	}else{
+		return 0.0;
+	}
+	
 }
 
-bool Write_ID(uint32_t ID){
-	uint32_t ID_Verify;
+bool Write_Focal_Length(float Focal_Length){
+	uint32_t Data_Verify;
+	uint32_t Data_Trans=(int32_t)(Focal_Length*100);
 	FLASH_Unlock();
 	FLASH_ClearFlag(FLASH_FLAG_BSY | FLASH_FLAG_EOP | FLASH_FLAG_PGERR | FLASH_FLAG_WRPERR); 
 	FLASH_ErasePage(FLASH_USER_END_ADDR);
-	FLASH_ProgramWord(FLASH_USER_END_ADDR , ID);
-	FLASH_ProgramWord(FLASH_USER_END_ADDR+4	, (ID^0x12345678));
+	FLASH_ProgramWord(FLASH_USER_END_ADDR , Data_Trans);
+	FLASH_ProgramWord(FLASH_USER_END_ADDR+4	, (Data_Trans^0x12345678));
 	FLASH_Lock();
 
-	ID_Verify = *(__IO uint32_t *)FLASH_USER_END_ADDR ;
-
-	if(ID_Verify == ID)
+	Data_Verify = *(__IO uint32_t *)FLASH_USER_END_ADDR ;
+	if(Data_Verify == Data_Trans)
 	{	
 		return TRUE;
 	}
@@ -261,6 +291,180 @@ uint16_t Read_ADC_Value(ADC_Channel_Type channel){
 	return ADC_GetConversionValue(ADC1);
 }
 
+bool Read_Self_Test_IO(void){
+	GPIO_InitTypeDef    GPIO_InitStructure;
+	/* GPIOA Periph clock enable */
+	RCC_AHBPeriphClockCmd(RCC_AHBPeriph_GPIOA, ENABLE); 
+
+	/* Configure PB0 in output pushpull mode */
+	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_15;
+	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN;
+	GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
+	GPIO_Init(GPIOA, &GPIO_InitStructure);
+	
+	return (bool)GPIO_ReadInputDataBit(GPIOA,GPIO_Pin_15);
+}
 
 
+void Self_Test(void){
+	Self_Test_IO_Config();
+	
+	switch(ModuleMode){
+			case FLUX_ONE_EXTRUDER_MODULE:	
+				Test_Extruder_One();
+				break;
+			case FLUX_DUO_EXTRUDER_MODULE:
+				
+				break;
+			case FLUX_LASER_MODULE:
+				Test_Laser();
+				break;
+			case Unknow:
+				//could not recognize module type
+				printf ("%08X%08X%08X 00 %s\n",UUID[2],UUID[1],UUID[0],"0");
+				break;
+	}
+}
+
+static void Test_Extruder_One(void){
+	uint32_t Test_Result=0;
+	char buffer [33];
+	
+	Test_Result+=1;
+	Test_Result+=Test_Alarm_IO();
+	Test_Result+=Test_Sensor_RW();
+	Test_Result+=Test_Acceler_Range();
+	Test_Result+=Test_Gyro_Range();
+	Test_Result+=Test_Thermal_Analog_Read();
+	Test_Result+=Test_Heater_Output();
+	Test_Result+=Test_Fan1_IO();
+	Test_Result+=Test_Fan2_IO();
+	
+	itoa(Test_Result,buffer,2);
+	printf ("%08X%08X%08X 10 %s\n",UUID[2],UUID[1],UUID[0],buffer);
+}
+
+static void Test_Laser(void){
+	uint32_t Test_Result=0;
+	char buffer [33];
+	Test_Result+=1;
+	Test_Result+=Test_Alarm_IO();
+	Test_Result+=Test_Sensor_RW();
+	Test_Result+=Test_Acceler_Range();
+	Test_Result+=Test_Gyro_Range();
+	Test_Result+=Test_Laser_PWM_Switch();
+	Test_Result+=Test_Laser_Power_Switch();
+	
+	itoa(Test_Result,buffer,2);
+	printf ("%08X%08X%08X 01 %s\n",UUID[2],UUID[1],UUID[0],buffer);
+}
+
+static uint32_t Test_Alarm_IO(void){
+	GPIO_ResetBits(GPIOB,GPIO_Pin_0);
+	delay_ms(1);
+	if(GPIO_ReadInputDataBit(GPIOA,GPIO_Pin_4)==0)
+		return 2;
+	else
+		return 0;
+	
+}
+
+static uint32_t Test_Sensor_RW(void){
+	if(!(Module_State & SENSOR_FAILURE))
+		return 4;
+	else
+		return 0;
+	
+}
+
+static uint32_t Test_Acceler_Range(void){
+	float value_x=0,value_y=0,value_z=0;
+	uint8_t i;
+	if(!(Module_State & SENSOR_FAILURE)){
+		for(i=0;i<20;i++){
+			value_x+=Read_Axis_Value(Acceler_X);
+			value_y+=Read_Axis_Value(Acceler_Y);
+			value_z+=Read_Axis_Value(Acceler_Z);
+		}
+		if(value_x>1000 || value_y>1000 || value_z>1000)
+			return 0;
+		else
+			return 8;
+	}
+	return 0;
+}
+
+static uint32_t Test_Gyro_Range(void){
+	float Angle_Z_Max,Angle_Z_Min,value_z;
+	uint8_t i;
+	if(!(Module_State & SENSOR_FAILURE)){
+		Angle_Z_Max=Angle_Z_Min=Read_Axis_Value(Gyro_Z);
+		for(i=0;i<20;i++){
+			value_z=Read_Axis_Value(Gyro_Z);
+			if(Angle_Z_Max<value_z)
+				Angle_Z_Max=value_z;
+			if(Angle_Z_Min>value_z)
+				Angle_Z_Min=value_z;
+		}
+		if(ABS_F(Angle_Z_Max-Angle_Z_Min)>2000)
+			return 0;
+		else
+			return 16;
+	}
+	return 0;
+}
+
+
+
+static uint32_t Test_Thermal_Analog_Read(void){
+	if(Read_Temperature()<0.0001)
+		return 32;
+	else
+		return 0;
+}
+
+static uint32_t Test_Heater_Output(void){
+	TIM1->CCR1 =0;
+	delay_ms(1);
+	if(GPIO_ReadInputDataBit(GPIOB,GPIO_Pin_11)==0)
+		return 64;
+	else
+		return 0;
+}
+
+static uint32_t Test_Fan1_IO(void){
+	TIM16->CCR1=0;
+	delay_ms(1);
+	if(GPIO_ReadInputDataBit(GPIOB,GPIO_Pin_12)==0)
+		return 128;
+	else
+		return 0;
+}
+
+static uint32_t Test_Fan2_IO(void){
+	TIM17->CCR1=0;
+	delay_ms(1);
+	if(GPIO_ReadInputDataBit(GPIOB,GPIO_Pin_14)==0)
+		return 256;
+	else
+		return 0;
+}
+
+static uint32_t Test_Laser_PWM_Switch(void){
+	GPIO_ResetBits(GPIOA,GPIO_Pin_0);
+	delay_ms(1);
+	if(GPIO_ReadInputDataBit(GPIOA,GPIO_Pin_2)==0)
+		return 512;
+	else
+		return 0;
+}
+
+static uint32_t Test_Laser_Power_Switch(void){
+	GPIO_ResetBits(GPIOB,GPIO_Pin_0);
+	delay_ms(1);
+	if(GPIO_ReadInputDataBit(GPIOA,GPIO_Pin_4)==0)
+		return 1024;
+	else
+		return 0;
+}
 

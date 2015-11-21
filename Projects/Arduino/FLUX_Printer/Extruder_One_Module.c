@@ -32,13 +32,17 @@ void Extruder_One_Cmd_Handler(void){
 		Debug_Mode=FALSE;
 		Show_Sensor_Data=FALSE;
 		Reset_Module_State(NO_HELLO);
-		sprintf(Response_Buffer,"1 OK HELLO TYPE:EXTRUDER ID:%u VENDOR:%s FIRMWARE:OHMAMA VERSION:%.4lf EXTRUDER:1 MAX_TEMPERATURE:%.1lf ",Get_UUID(),Vender,Firmware_Version,Max_Temperature);
+		sprintf(Response_Buffer,"1 OK HELLO TYPE:EXTRUDER ID:%08X%08X%08X VENDOR:%s FIRMWARE:%s VERSION:%.4lf EXTRUDER:1 MAX_TEMPERATURE:%.1lf ",UUID[2],UUID[1],UUID[0],Vender,Firmware_Name,Firmware_Version,Max_Temperature);
 
 	}else if(!strcmp(Command_Str, "DEBUG")){
+		Debug_Mode=TRUE;
 		Reset_Module_State(NO_HELLO);
-		sprintf(Response_Buffer,"1 OK HELLO TYPE:EXTRUDER ID:%u VENDOR:%s FIRMWARE:OHMAMA VERSION:%.4lf EXTRUDER:1 MAX_TEMPERATURE:%.1lf ",Get_UUID(),Vender,Firmware_Version,Max_Temperature);
+		sprintf(Response_Buffer,"1 OK HELLO TYPE:EXTRUDER ID:%08X%08X%08X VENDOR:%s FIRMWARE:%s VERSION:%.4lf EXTRUDER:1 MAX_TEMPERATURE:%.1lf ",UUID[2],UUID[1],UUID[0],Vender,Firmware_Name,Firmware_Version,Max_Temperature);
+
 	}else if(!strcmp(Command_Str, "SHOW")){
+		Show_Sensor_Msg();
 		Show_Sensor_Data=TRUE;
+		sprintf(Response_Buffer,"1 OK ");
 	}else if(!strcmp(Command_Str, "PING")){
 		//uint8_t Err_Sum;
 		//error check

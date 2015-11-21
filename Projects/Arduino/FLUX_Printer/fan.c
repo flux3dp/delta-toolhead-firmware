@@ -15,7 +15,9 @@ void Set_Exhalation_Fan_PWM(uint8_t PWM){
 void Set_Inhalation_Fan_PWM(uint8_t PWM){
 	uint16_t Pwm_Value;
 	Inhalation_PWM=PWM;//save PWM
-	if(PWM<Fan_Lowest_PWM)
+	if(PWM==0)
+		PWM=0;
+	else if(PWM<Fan_Lowest_PWM)
 		PWM=Fan_Lowest_PWM;
 	Pwm_Value=(255 - PWM)*257;
 	TIM17->CCR1 = Pwm_Value;

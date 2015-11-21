@@ -7,18 +7,21 @@
 #include "defines.h"
 #include "LaserModule.h"
 #include <math.h>
-float Calibration_X=0,Calibration_Y=0,Calibration_Z=0;
 
-uint8_t Tilt_Count=0;
-Six_Axis_Sensor_State_Type Six_Axis_Sensor_State = Mems_Initial_Failed;
-
+//for detecting harm postures
 static uint32_t Last_Detect_Time=0;
 static uint16_t Tilt_Trigger_Count=0;
 static uint16_t Shake_Trigger_Count=0;
 static uint32_t Trigger_Interval=0;
 static uint8_t Gyro_Value_Count=0;
-static float Gyro_Value_Buffer[Gyro_Tilt_Count]={0};
+
+//for Agle_Displacement
 static float X_Angle=0.0,Y_Angle=0.0,Z_Angle=0.0;
+
+//for gyro calibration 
+static uint8_t Gyro_Calibration_Count=Gyro_Calibration_Times;
+static double Z_Angle_Sum=0;
+static float Z_Angle_Max=-9000,Z_Angle_Min=9000;
 static float X_Angle_Offset=0.0,Y_Angle_Offset=0.0,Z_Angle_Offset=0.0;
 static float X_Acc_Offset=0.0,Y_Acc_Offset=0.0,Z_Acc_Offset=0.0;
 
@@ -62,10 +65,20 @@ Six_Axis_Sensor_State_Type Six_Axis_Sensor_Initial(void)
 		LSM6DS3_RegWrite(CTRL3_C, 0x04);
 		
 		//bug?
-		ABS_F(Read_Axis_Value(Gyro_X));
-		ABS_F(Read_Axis_Value(Gyro_Y));
-		ABS_F(Read_Axis_Value(Gyro_Z));
+		Read_Axis_Value(Acceler_X);
+		Read_Axis_Value(Acceler_Y);
+		Read_Axis_Value(Acceler_Z);
+		Read_Axis_Value(Gyro_X);
+		Read_Axis_Value(Gyro_Y);
+		Read_Axis_Value(Gyro_Z);
 
+		if(ABS_F(Read_Axis_Value(Acceler_X))<0.00001)//cannot read Gyro x value
+			return Mems_Initial_Failed;
+		if(ABS_F(Read_Axis_Value(Acceler_Y))<0.00001)//cannot read Gyro y value
+			return Mems_Initial_Failed;
+		if(ABS_F(Read_Axis_Value(Acceler_Z)<0.00001))//cannot read Gyro z value
+			return Mems_Initial_Failed;
+		
 		if(ABS_F(Read_Axis_Value(Gyro_X))<0.00001)//cannot read Gyro x value
 			return Mems_Initial_Failed;
 		if(ABS_F(Read_Axis_Value(Gyro_Y))<0.00001)//cannot read Gyro y value
@@ -131,33 +144,85 @@ float Read_Axis_Value(Six_Axis_Value_Type axis){
 }
 
 void Six_Axis_Sensor_Calibration(void){
-	double X_Angle_Sum=0,Y_Angle_Sum=0,Z_Angle_Sum=0;
-	double X_Acc_Sum=0,Y_Acc_Sum=0,Z_Acc_Sum=0;
+	
+	float X_Acc_Value=0,Y_Acc_Value=0,Z_Acc_Value=0;
+	float Z_Gyro_Value=0;
 	uint8_t i;
-	const uint8_t Count=100;
+	const uint8_t Count=5;
+	if(!Gyro_Calibration_Count)//count<=0
+		return;
 	for(i=0;i<Count;i++){
-		X_Acc_Sum+=Read_Axis_Value(Acceler_X);
-		Y_Acc_Sum+=Read_Axis_Value(Acceler_Y);
-		Z_Acc_Sum+=Read_Axis_Value(Acceler_Z);
-		
-		X_Angle_Sum+=Read_Axis_Value(Gyro_X);
-		Y_Angle_Sum+=Read_Axis_Value(Gyro_Y);
-		Z_Angle_Sum+=Read_Axis_Value(Gyro_Z);
+		X_Acc_Value+=Read_Axis_Value(Acceler_X);
+		Y_Acc_Value+=Read_Axis_Value(Acceler_Y);
+		Z_Acc_Value+=Read_Axis_Value(Acceler_Z);
 	}
-	X_Acc_Offset=(float)(-X_Acc_Sum/Count);
-	Y_Acc_Offset=(float)(-Y_Acc_Sum/Count);
-	Z_Acc_Offset=(float)(-Z_Acc_Sum/Count)+1000.0;
 	
-	X_Angle_Offset=(float)(-X_Angle_Sum/Count);
-	Y_Angle_Offset=(float)(-Y_Angle_Sum/Count);
-	Z_Angle_Offset=(float)(-Z_Angle_Sum/Count);
+	X_Acc_Value=ABS_F(X_Acc_Value/Count);
+	Y_Acc_Value=ABS_F(Y_Acc_Value/Count);
+	Z_Acc_Value=ABS_F(Z_Acc_Value/Count);
 	
-	//printf("X'=%.4f Y'=%.4f Z'=%.4f , ",X_Acc_Offset,Y_Acc_Offset,Z_Acc_Offset);
-	//printf("X'=%.4f Y'=%.4f Z'=%.4f\n",X_Angle_Offset,Y_Angle_Offset,Z_Angle_Offset);
+	//printf("acc X'=%.4f Y'=%.4f Z'=%.4f\n",ABS_F(X_Acc_Value),ABS_F(Y_Acc_Value),ABS_F(Z_Acc_Value));
+	
+		
+	if(X_Acc_Value<=50 && Y_Acc_Value<=50 && Z_Acc_Value<=1050 && Z_Acc_Value>=950){ //According to datasheet zero-g = +-40mg
+		Z_Gyro_Value=Read_Axis_Value(Gyro_Z);
+		if(Gyro_Calibration_Count==Gyro_Calibration_Times)
+			Z_Angle_Max=Z_Angle_Min=Z_Gyro_Value;
+		if(Z_Angle_Max<Z_Gyro_Value)
+			Z_Angle_Max=Z_Gyro_Value;
+		if(Z_Angle_Min>Z_Gyro_Value)
+			Z_Angle_Min=Z_Gyro_Value;
+		Z_Angle_Sum+=Z_Gyro_Value;
+		Gyro_Calibration_Count--;
+		if(!Gyro_Calibration_Count){
+			
+			if(ABS_F(Z_Angle_Max-Z_Angle_Min)<2000.0){
+				Z_Angle_Offset=(float)(-Z_Angle_Sum/Gyro_Calibration_Times);
+				
+				Reset_Module_State(SENSOR_CALIBRATION_FAILURE);		
+			}				
+		}
+	}else{
+		return;
+	}
+
+	
+}
+
+//void Six_Axis_Sensor_Calibration(void){
+//	double X_Angle_Sum=0,Y_Angle_Sum=0,Z_Angle_Sum=0;
+//	double X_Acc_Sum=0,Y_Acc_Sum=0,Z_Acc_Sum=0;
+//	uint8_t i;
+//	const uint8_t Count=100;
+//	for(i=0;i<Count;i++){
+//		X_Acc_Sum+=Read_Axis_Value(Acceler_X);
+//		Y_Acc_Sum+=Read_Axis_Value(Acceler_Y);
+//		Z_Acc_Sum+=Read_Axis_Value(Acceler_Z);
+//		
+//		X_Angle_Sum+=Read_Axis_Value(Gyro_X);
+//		Y_Angle_Sum+=Read_Axis_Value(Gyro_Y);
+//		Z_Angle_Sum+=Read_Axis_Value(Gyro_Z);
+//	}
+//	X_Acc_Offset=(float)(-X_Acc_Sum/Count);
+//	Y_Acc_Offset=(float)(-Y_Acc_Sum/Count);
+//	Z_Acc_Offset=(float)(-Z_Acc_Sum/Count)+1000.0;
+//	
+//	X_Angle_Offset=(float)(-X_Angle_Sum/Count);
+//	Y_Angle_Offset=(float)(-Y_Angle_Sum/Count);
+//	Z_Angle_Offset=(float)(-Z_Angle_Sum/Count);
+//	
+//	//printf("X'=%.4f Y'=%.4f Z'=%.4f , ",X_Acc_Offset,Y_Acc_Offset,Z_Acc_Offset);
+//	//printf("X'=%.4f Y'=%.4f Z'=%.4f\n",X_Angle_Offset,Y_Angle_Offset,Z_Angle_Offset);
+//}
+
+void Show_Sensor_Msg(void){
+	printf("Max=%lf Min=%lf\n",Z_Angle_Max,Z_Angle_Min);
+	printf("offset X'=%.4f Y'=%.4f Z'=%.4f\n",X_Angle_Offset,Y_Angle_Offset,Z_Angle_Offset);
 }
 
 void Show_Sensor_RawData(void){
 	float Gx,Gy,Gz;
+	
 	printf("%.4f\t\t",Read_Axis_Value(Acceler_X));          		
 	printf("%.4f\t\t",Read_Axis_Value(Acceler_Y));            
 	printf("%.4f\t\t",Read_Axis_Value(Acceler_Z));
@@ -169,9 +234,6 @@ void Show_Sensor_RawData(void){
 	printf("%.4f\t\t",Gx);
 	printf("%.4f\t\t",Gy);
 	printf("%.4f",Gz);
-//	printf("%s%.4f\t\t",Gx>0.1?" ":"",Gx);          		
-//	printf("%s%.4f\t\t",Gy>0.1?" ":"",Gy);            
-//	printf("%s%.4f",Gz>0?" ":"",Gz); 
 
 	printf("\n");
 
@@ -191,79 +253,18 @@ void Show_Agle_Displacement(void){
 
 }
 
-void Detect_Gyro_Shake(void){
-	float Gyro_X_Value,Gyro_Y_Value,Gyro_Z_Value;
-	Gyro_X_Value=Read_Axis_Value(Gyro_X);
-	Gyro_Y_Value=Read_Axis_Value(Gyro_Y);
-	Gyro_Z_Value=Read_Axis_Value(Gyro_Z);
-	if(Gyro_X_Value>=Gyro_Shake_Alarm_Value || Gyro_X_Value<=-Gyro_Shake_Alarm_Value || Gyro_Y_Value>=Gyro_Shake_Alarm_Value || Gyro_Y_Value<=-Gyro_Shake_Alarm_Value || Gyro_Z_Value>=Gyro_Shake_Alarm_Value || Gyro_Z_Value<=-Gyro_Shake_Alarm_Value){
-		if(ModuleMode==FLUX_LASER_MODULE)
-			Laser_Switch_Off();
-		
-		if(Debug_Mode){
-			printf("Shake ");
-			printf("%.2f ",Gyro_X_Value);          		
-			printf("%.2f ",Gyro_Y_Value);            
-			printf("%.2f",Gyro_Z_Value);
-			printf("\n");
-		}	
-		
-		Set_Module_State(SHAKE);
-		Alarm_On();
-	}
-	
-}
-
-void Detect_Gyro_Tilt(void){
-	float Gyro_Z_Value;
-	Gyro_Z_Value=Read_Axis_Value(Gyro_Z);
-
-	if(Trigger_Interval>=1)
-		Trigger_Interval++;
-	
-	if(Gyro_Z_Value >= Gyro_Tilt_Alarm_Value || Gyro_Z_Value <= -Gyro_Tilt_Alarm_Value){
-		Trigger_Interval=1;
-		Tilt_Trigger_Count++;
-	}
-		
-	if(Tilt_Trigger_Count>=4){
-		if(ModuleMode==FLUX_LASER_MODULE)
-			Laser_Switch_Off();
-		
-		if(Debug_Mode){
-			printf("Tilt");           
-			printf("%.2f",Gyro_Z_Value);
-			printf("\n");
-		}
-		Trigger_Interval=0;
-		Tilt_Trigger_Count=0;
-		Set_Module_State(TILT);
-		Alarm_On();
-	}
-	
-	if(Trigger_Interval>51){
-		Trigger_Interval=0;
-		Tilt_Trigger_Count=0;
-	}
-
-}
-
 void Detect_Gyro_Harm_Posture(void){
-	float Gyro_X_Value,Gyro_Y_Value,Gyro_Z_Value;
-	//Gyro_X_Value=Read_Axis_Value(Gyro_X);
-	//Gyro_Y_Value=Read_Axis_Value(Gyro_Y);
+	float Gyro_Z_Value;
+
 	Gyro_Z_Value=Read_Axis_Value(Gyro_Z);
 	
 	//detect shake
-//	if(Gyro_X_Value>=Gyro_Shake_Alarm_Value || Gyro_X_Value<=-Gyro_Shake_Alarm_Value || Gyro_Y_Value>=Gyro_Shake_Alarm_Value || Gyro_Y_Value<=-Gyro_Shake_Alarm_Value || Gyro_Z_Value>=Gyro_Shake_Alarm_Value || Gyro_Z_Value<=-Gyro_Shake_Alarm_Value){
 	if(Gyro_Z_Value>=Gyro_Shake_Alarm_Value || Gyro_Z_Value<=-Gyro_Shake_Alarm_Value){
-		if(ModuleMode==FLUX_LASER_MODULE)
+		if(ModuleMode==FLUX_LASER_MODULE && !Debug_Mode)
 			Laser_Switch_Off();
 		
 		if(Debug_Mode){
-			printf("Shake ");
-			//printf("%.2f\t\t",Gyro_X_Value);          		
-			//printf("%.2f\t\t",Gyro_Y_Value);            
+			printf("Shake ");           
 			printf("%.2f\t\t",Gyro_Z_Value);
 			printf("\n");
 		}	
@@ -287,7 +288,7 @@ void Detect_Gyro_Harm_Posture(void){
 	}
 		
 	if(Tilt_Trigger_Count>=4){
-		if(ModuleMode==FLUX_LASER_MODULE)
+		if(ModuleMode==FLUX_LASER_MODULE && !Debug_Mode)
 			Laser_Switch_Off();
 		
 		if(Debug_Mode){
@@ -312,47 +313,4 @@ void Detect_Gyro_Harm_Posture(void){
 void Reset_Axis_Sensor_State(void){
 	Reset_Module_State(SHAKE);
 	Reset_Module_State(TILT);
-}
-
-// --- Kalman filter module  ----------------------------------------------------------------------------
-
-    float Q_angle  =  0.001; //0.001
-    float Q_gyro   =  0.003;  //0.003
-    float R_angle  =  0.03;  //0.03
-
-    float x_angle = 0;
-    float x_bias = 0;
-    float P_00 = 0, P_01 = 0, P_10 = 0, P_11 = 0;
-    float dt, y, S;
-    float K_0, K_1;
-
-float kalmanCalculate(float newAngle, float newRate,int looptime) {
-	dt = (float)(looptime)/1000;
-	x_angle += dt * (newRate - x_bias);
-	P_00 +=  - dt * (P_10 + P_01) + Q_angle * dt;
-	P_01 +=  - dt * P_11;
-	P_10 +=  - dt * P_11;
-	P_11 +=  + Q_gyro * dt;
-
-	y = newAngle - x_angle;
-	S = P_00 + R_angle;
-	K_0 = P_00 / S;
-	K_1 = P_10 / S;
-
-	x_angle +=  K_0 * y;
-	x_bias  +=  K_1 * y;
-	P_00 -= K_0 * P_00;
-	P_01 -= K_0 * P_01;
-	P_10 -= K_1 * P_00;
-	P_11 -= K_1 * P_01;
-
-	return x_angle;
-}
-
-int getAccAngle(void) {
-  return arctan2((int)-Read_Axis_Value(Acceler_Z), (int)-Read_Axis_Value(Acceler_X)) + 256;    // in Quid: 1024/(2*PI))
-}
-
-int getGyroRate(void) {                                             // ARef=3.3V, Gyro sensitivity=2mV/(deg/sec)
-  return (int)(Read_Axis_Value(Gyro_Y)* 4.583333333);                 // in quid/sec:(1024/360)/1024 * 3.3/0.002)
 }

@@ -26,7 +26,7 @@
 #*.exe
 #*.out
 #*.app
-*.hex
+#*.hex
 
 # Keil
 *.lst

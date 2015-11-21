@@ -9,23 +9,19 @@
 #include "Six_Axis_Sensor.h"
 
 ModuleMode_Type ModuleMode=Unknow;
+
 extern volatile uint32_t Module_State;
+
+static void Laser_Self_Test_IO_Config(void);
+
+static void Extruder_One_Self_Test_IO_Config(void);
 
 void Module_Initial(void){	
 	
 	Module_Recognition();//set up module mode.
-	ID_Initial();
 	
 }
 
-void ID_Initial(void){
-	__IO uint32_t ID,checksum;
-	ID=*(__IO uint32_t *)FLASH_USER_END_ADDR;
-	checksum=*(__IO uint32_t *)(FLASH_USER_END_ADDR+4);
-	if((ID^0x12345678) != checksum){
-		Write_ID((uint32_t)(ABS_F(Read_Axis_Value(Gyro_X))*100000000));//not a good idea to generate a random number
-	}
-}
 void Module_Recognition(void){
 	uint16_t ADC_Value;
 	ADC_Config();	//config all ADC
@@ -444,7 +440,7 @@ void Laser_Switch_Config(void){
 	GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;	//無提升電阻
 	GPIO_Init(GPIOB, &GPIO_InitStructure);
 	
-	GPIO_ResetBits(GPIOA,GPIO_Pin_0);
+	GPIO_SetBits(GPIOA,GPIO_Pin_0);
 	GPIO_SetBits(GPIOB,GPIO_Pin_9);
 }
 
@@ -471,9 +467,60 @@ void Alarm_IO_Config(void){
 	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;
 	GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
 	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-	GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_UP;	//無提升電阻
+	GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_UP;	//提升電阻
 	GPIO_Init(GPIOB, &GPIO_InitStructure);
 	
 	Alarm_Off();
 }
 
+void Self_Test_IO_Config(void){
+	switch(ModuleMode){
+			case FLUX_ONE_EXTRUDER_MODULE:	
+				Extruder_One_Self_Test_IO_Config();
+				break;
+			case FLUX_DUO_EXTRUDER_MODULE:
+				
+				break;
+			case FLUX_LASER_MODULE:
+				Laser_Self_Test_IO_Config();
+				break;
+			case Unknow:
+				//could not recognize module type
+				
+				break;
+	}
+}
+
+static void Laser_Self_Test_IO_Config(void){
+	GPIO_InitTypeDef    GPIO_InitStructure;
+	/* GPIOA Periph clock enable */
+	RCC_AHBPeriphClockCmd(RCC_AHBPeriph_GPIOA, ENABLE); 
+	RCC_AHBPeriphClockCmd(RCC_AHBPeriph_GPIOB, ENABLE); 
+	
+	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_2|GPIO_Pin_4;
+	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN;
+	GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_UP;
+	GPIO_Init(GPIOA, &GPIO_InitStructure);
+	
+	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_10;
+	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN;
+	GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_UP;
+	GPIO_Init(GPIOB, &GPIO_InitStructure);
+}
+
+static void Extruder_One_Self_Test_IO_Config(void){
+	GPIO_InitTypeDef    GPIO_InitStructure;
+	/* GPIOA Periph clock enable */
+	RCC_AHBPeriphClockCmd(RCC_AHBPeriph_GPIOA, ENABLE); 
+	RCC_AHBPeriphClockCmd(RCC_AHBPeriph_GPIOB, ENABLE); 
+	
+	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_4;
+	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN;
+	GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_UP;
+	GPIO_Init(GPIOA, &GPIO_InitStructure);
+	
+	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_11;
+	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN;
+	GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_UP;
+	GPIO_Init(GPIOB, &GPIO_InitStructure);
+}

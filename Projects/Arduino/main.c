@@ -20,6 +20,7 @@
 #ifdef Function_Test
 	#include "LaserModule.h" //testing
 #endif
+
 volatile uint32_t CmdTimeout_count=0;
 
 extern volatile uint16_t Fan1_Count;
@@ -40,11 +41,11 @@ void USART1_IRQHandler(void)
 	Usart1_ReadLine();	//Reading a byte until '\n' is received or timeout(10ms)
 }
 
-//PID control timer.Default update period:20ms
+//General control timer.Default update period:20ms
 void TIM6_DAC_IRQHandler(void){
 	if (TIM_GetITStatus(TIM6, TIM_IT_Update) == SET)
     {
-		
+		//TODO
 		TIM_ClearITPendingBit(TIM6, /*TIM_IT_Update*/ TIM_FLAG_Update);
 		
 	}
@@ -69,8 +70,9 @@ void EXTI4_15_IRQHandler(void){
 
 
 int main(){
-	volatile uint32_t lastTime=0;
-	volatile uint32_t t=0;
+	volatile uint32_t LastTime=0;
+	volatile uint32_t Time_Count=0;
+	
 	RCC_HSI_Configuration();//setting system clock as 48M Hz
 	
 	SysTick_Config(SystemCoreClock / 1000);//setting system tick as 1ms
@@ -85,6 +87,8 @@ int main(){
 	
 	Alarm_IO_Config();
 	
+	Self_Test_IO_Config();
+	
 	Uart1_Config();
 
 	#ifdef Function_Test
@@ -93,6 +97,7 @@ int main(){
 	
 	Six_Axis_Sensor_Initial();
 
+	//Module seprate configuration
 	switch(ModuleMode){
 		case FLUX_ONE_EXTRUDER_MODULE:
 			
@@ -122,19 +127,24 @@ int main(){
 			Laser_Switch_Config();
 		
 			#ifdef Function_Test
+				Reset_Module_State(NO_HELLO);
 				Debug_Mode=TRUE;
-				//Laser_Switch_On();
+				Laser_Switch_On();
 			#endif
-			break;
-			
+			break;	
 		case Unknow:
 			//could not recognize module type
+			Set_Module_State(UNKNOW_MODULE);
 			break;
 	}	
 
 	//Six_Axis_Sensor_Calibration();//what time to calibrate?
 
 	Uart1_ISR_Enable();//uart1 interrupt enable
+	
+	if(!Read_Self_Test_IO()){
+		Self_Test();
+	}
 	
 	#if Enable_Debug_Msg
 		if(!(Module_State & SENSOR_FAILURE))
@@ -156,7 +166,7 @@ int main(){
 				break;
 			case Unknow:
 				//could not recognize module type
-				printf("unknow\n");
+				printf("Unknow\n");
 				break;
 		}
 	#endif
@@ -166,7 +176,7 @@ int main(){
 	#if Enable_IWDG
 		IWDG_Configuration();
 	#endif
-	//printf("time=%d\n",millis());
+
 	while(1){
 
 		Feed_WatchDog();//feed the watch dog or it will bite u after 800ms
@@ -179,16 +189,17 @@ int main(){
 		
 		if(!(Module_State & SENSOR_FAILURE)){
 			
-			t=millis()-lastTime;
-			if(t >= 100){
-				lastTime=millis();
+			Time_Count=millis()-LastTime;
+			if(Time_Count >= 100){
+				LastTime=millis();
 				if(Show_Sensor_Data)
 					Show_Sensor_RawData();
 			}
-			if(!(Module_State & SENSOR_CALIBRATION_FAILURE)){
-				
+			if(Module_State & SENSOR_CALIBRATION_FAILURE){
+				Six_Axis_Sensor_Calibration();
+			}else{
+				Detect_Gyro_Harm_Posture();
 			}
-			Detect_Gyro_Harm_Posture();
 		}
 	}
 }

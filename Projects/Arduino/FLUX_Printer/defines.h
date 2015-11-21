@@ -1,8 +1,9 @@
-#define Firmware_Version	1.0924
+#define Firmware_Version	1.1119
+#define Firmware_Name		"OHMAMA"
 #define STM32F0_UUID ((uint32_t *)0x1FFFF7AC)
 #define Enable_IWDG 1
-#define Enable_Debug_Msg 1
-#define Function_Test
+#define Enable_Debug_Msg 0
+//#define Function_Test
 
 static const char Vender[] = "FLUX\\ .inc";
 

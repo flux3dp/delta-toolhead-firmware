@@ -25,14 +25,17 @@ void Laser_Cmd_Handler(void){
 		Debug_Mode=FALSE;
 		Show_Sensor_Data=FALSE;
 		Reset_Module_State(NO_HELLO);
-		sprintf(Response_Buffer,"1 OK HELLO TYPE:LASER ID:%u VENDOR:%s FIRMWARE:OHMAMA VERSION:%.4lf LASER ",Get_UUID(),Vender,Firmware_Version);
+		sprintf(Response_Buffer,"1 OK HELLO TYPE:LASER ID:%08X%08X%08X VENDOR:%s FIRMWARE:%s VERSION:%.4lf FOCAL_LENGTH:%.2lf",UUID[2],UUID[1],UUID[0],Vender,Firmware_Name,Firmware_Version,Read_Focal_Length());
 
 	}else if(!strcmp(Command_Str, "DEBUG")){
+		Debug_Mode=TRUE;
 		Reset_Module_State(NO_HELLO);
-		sprintf(Response_Buffer,"1 OK HELLO TYPE:LASER ID:%u VENDOR:%s FIRMWARE:OHMAMA VERSION:%.4lf LASER ",Get_UUID(),Vender,Firmware_Version);
-		
+		sprintf(Response_Buffer,"1 OK HELLO TYPE:LASER ID:%08X%08X%08X VENDOR:%s FIRMWARE:%s VERSION:%.4lf FOCAL_LENGTH:%.2lf",UUID[2],UUID[1],UUID[0],Vender,Firmware_Name,Firmware_Version,Read_Focal_Length());
+
 	}else if(!strcmp(Command_Str, "SHOW")){
+		Show_Sensor_Msg();
 		Show_Sensor_Data=TRUE;
+		sprintf(Response_Buffer,"1 OK ");
 	}else if(!strcmp(Command_Str, "PING")){
 		//error check
 		if(!(Module_State&(SHAKE|TILT)))
@@ -44,6 +47,21 @@ void Laser_Cmd_Handler(void){
 		Reset_Axis_Sensor_State();
 		//reset alarm IO
 		Alarm_Off();
+	}else if(!strcmp(Command_Str, "WRITE")){
+		float Float_Temp;
+		Command_Str = strtok(NULL, " ");
+		if(Command_Str[0]=='F' && Command_Str[1]=='L' && Command_Str[2]==':'){
+			Float_Temp=atof(&Command_Str[3]);
+			if(Write_Focal_Length(Float_Temp)){
+				sprintf(Response_Buffer,"1 OK WRITE ");
+			}else{
+				sprintf(Response_Buffer,"1 ER FAILED ");
+			}
+			
+				
+		}else{
+			sprintf(Response_Buffer,"1 ER UNKNOW_COMMAND ");
+		}
 	}else{
 		sprintf(Response_Buffer,"1 ER UNKNOW_COMMAND ");
 	}
