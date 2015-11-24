@@ -21,7 +21,7 @@ static float X_Angle=0.0,Y_Angle=0.0,Z_Angle=0.0;
 //for gyro calibration 
 static uint8_t Gyro_Calibration_Count=Gyro_Calibration_Times;
 static double Z_Angle_Sum=0;
-static float Z_Angle_Max=-9000,Z_Angle_Min=9000;
+static float Z_Angle_Max,Z_Angle_Min;
 static float X_Angle_Offset=0.0,Y_Angle_Offset=0.0,Z_Angle_Offset=0.0;
 static float X_Acc_Offset=0.0,Y_Acc_Offset=0.0,Z_Acc_Offset=0.0;
 
@@ -35,8 +35,10 @@ extern ModuleMode_Type ModuleMode;
 Six_Axis_Sensor_State_Type Six_Axis_Sensor_Initial(void)
 {
 	uint8_t reg=0;
+	float Temp_Value;
 	LSM6DS3_Setup();	   
 	
+	Set_Module_State(SENSOR_FAILURE);
 	reg = LSM6DS3_RegRead(WHO_AM_I);  
 
 	if(reg == 0x69) //0x3B is LIS302DL , 0x69 is LSM6DS3
@@ -64,28 +66,67 @@ Six_Axis_Sensor_State_Type Six_Axis_Sensor_Initial(void)
 		//Reboot memory content:					normal mode
 		LSM6DS3_RegWrite(CTRL3_C, 0x04);
 		
-		//bug?
+		//bug? recevie a large value on starting
 		Read_Axis_Value(Acceler_X);
 		Read_Axis_Value(Acceler_Y);
 		Read_Axis_Value(Acceler_Z);
+		
 		Read_Axis_Value(Gyro_X);
 		Read_Axis_Value(Gyro_Y);
 		Read_Axis_Value(Gyro_Z);
+		
+		printf("Gyro x=%lf\n",Read_Axis_Value(Gyro_X));
+		printf("Gyro y=%lf\n",Read_Axis_Value(Gyro_Y));
+		printf("Gyro z=%lf\n",Read_Axis_Value(Gyro_Z));
+		printf("Gyro x=%lf\n",Read_Axis_Value(Gyro_X));
+		printf("Gyro y=%lf\n",Read_Axis_Value(Gyro_Y));
+		printf("Gyro z=%lf\n",Read_Axis_Value(Gyro_Z));
+		printf("Gyro x=%lf\n",Read_Axis_Value(Gyro_X));
+		printf("Gyro y=%lf\n",Read_Axis_Value(Gyro_Y));
+		printf("Gyro z=%lf\n",Read_Axis_Value(Gyro_Z));
+		printf("Gyro x=%lf\n",Read_Axis_Value(Gyro_X));
+		printf("Gyro y=%lf\n",Read_Axis_Value(Gyro_Y));
+		printf("Gyro z=%lf\n",Read_Axis_Value(Gyro_Z));
 
-		if(ABS_F(Read_Axis_Value(Acceler_X))<0.00001)//cannot read Gyro x value
+		Temp_Value=ABS_F(Read_Axis_Value(Acceler_X));
+		if(Temp_Value<0.0001 )//cannot read Accelero x value
+		{
+			printf("Acc x=%lf\n",Temp_Value);
 			return Mems_Initial_Failed;
-		if(ABS_F(Read_Axis_Value(Acceler_Y))<0.00001)//cannot read Gyro y value
+		}
+			
+		Temp_Value=ABS_F(Read_Axis_Value(Acceler_Y));
+		if(Temp_Value<0.0001 )//cannot read Accelero y value 
+		{
+			printf("Acc y=%lf\n",Temp_Value);
 			return Mems_Initial_Failed;
-		if(ABS_F(Read_Axis_Value(Acceler_Z)<0.00001))//cannot read Gyro z value
+		}
+		Temp_Value=ABS_F(Read_Axis_Value(Acceler_Z));
+		if(Temp_Value<0.0001 )//cannot read Accelero z value
+		{
+			printf("Acc z=%lf\n",Temp_Value);
 			return Mems_Initial_Failed;
-		
-		if(ABS_F(Read_Axis_Value(Gyro_X))<0.00001)//cannot read Gyro x value
+		}
+		Temp_Value=ABS_F(Read_Axis_Value(Gyro_X));
+		if(Temp_Value<0.0001 || Temp_Value>50000)//cannot read Gyro x value or out of zero-rate range
+		{
+			printf("Gyro x=%lf\n",Temp_Value);
 			return Mems_Initial_Failed;
-		if(ABS_F(Read_Axis_Value(Gyro_Y))<0.00001)//cannot read Gyro y value
+		}
+		Temp_Value=ABS_F(Read_Axis_Value(Gyro_Y));
+		if(Temp_Value<0.0001 || Temp_Value>50000)//cannot read Gyro y value or out of zero-rate range
+		{
+			printf("Gyro y=%lf\n",Temp_Value);
 			return Mems_Initial_Failed;
-		if(ABS_F(Read_Axis_Value(Gyro_Z)<0.00001))//cannot read Gyro z value
+		}
+		Temp_Value=ABS_F(Read_Axis_Value(Gyro_Z));
+		if(Temp_Value<0.0001 || Temp_Value>50000)//cannot read Gyro z value or out of zero-rate range
+		{
+			printf("Gyro z=%lf\n",Temp_Value);
 			return Mems_Initial_Failed;
-		
+		}
+
+		Reset_Module_State(SENSOR_FAILURE);
 		return Mems_Initial_Ok;
 	}
 	else
@@ -175,11 +216,13 @@ void Six_Axis_Sensor_Calibration(void){
 		Z_Angle_Sum+=Z_Gyro_Value;
 		Gyro_Calibration_Count--;
 		if(!Gyro_Calibration_Count){
-			
-			if(ABS_F(Z_Angle_Max-Z_Angle_Min)<2000.0){
+			if(ABS_F(Z_Angle_Max-Z_Angle_Min)<200.0){
 				Z_Angle_Offset=(float)(-Z_Angle_Sum/Gyro_Calibration_Times);
 				
 				Reset_Module_State(SENSOR_CALIBRATION_FAILURE);		
+			}else{
+				Gyro_Calibration_Count=Gyro_Calibration_Times;
+				Z_Angle_Sum=0;
 			}				
 		}
 	}else{
@@ -263,17 +306,16 @@ void Detect_Gyro_Harm_Posture(void){
 		if(ModuleMode==FLUX_LASER_MODULE && !Debug_Mode)
 			Laser_Switch_Off();
 		
-		if(Debug_Mode){
-			printf("Shake ");           
-			printf("%.2f\t\t",Gyro_Z_Value);
-			printf("\n");
-		}	
-		
 		Shake_Trigger_Count++;
 		if(Shake_Trigger_Count>=10){
 			Set_Module_State(SHAKE);
 			Alarm_On();
 			Shake_Trigger_Count=0;
+			if(Debug_Mode){
+				printf("Shake ");           
+				printf("%.2f\t\t",Gyro_Z_Value);
+				printf("\n");
+			}	
 		}
 		
 	}
@@ -290,16 +332,17 @@ void Detect_Gyro_Harm_Posture(void){
 	if(Tilt_Trigger_Count>=4){
 		if(ModuleMode==FLUX_LASER_MODULE && !Debug_Mode)
 			Laser_Switch_Off();
+
+		Trigger_Interval=0;
+		Tilt_Trigger_Count=0;
+		Set_Module_State(TILT);
+		Alarm_On();
 		
 		if(Debug_Mode){
 			printf("Tilt ");           
 			printf("%.2f",Gyro_Z_Value);
 			printf("\n");
 		}
-		Trigger_Interval=0;
-		Tilt_Trigger_Count=0;
-		Set_Module_State(TILT);
-		Alarm_On();
 	}
 	
 	if(Trigger_Interval>51){

@@ -327,8 +327,9 @@ void Self_Test(void){
 }
 
 static void Test_Extruder_One(void){
-	uint32_t Test_Result=0;
+	int Test_Result=0;
 	char buffer [33];
+	char *binResult;
 	
 	Test_Result+=1;
 	Test_Result+=Test_Alarm_IO();
@@ -340,13 +341,16 @@ static void Test_Extruder_One(void){
 	Test_Result+=Test_Fan1_IO();
 	Test_Result+=Test_Fan2_IO();
 	
-	itoa(Test_Result,buffer,2);
-	printf ("%08X%08X%08X 10 %s\n",UUID[2],UUID[1],UUID[0],buffer);
+	
+	binResult=int2binStr(Test_Result,buffer);
+	printf ("%08X%08X%08X 10 %s\n",UUID[2],UUID[1],UUID[0],binResult);
 }
 
 static void Test_Laser(void){
 	uint32_t Test_Result=0;
-	char buffer [33];
+	char buffer[33];
+	char *binResult;
+	
 	Test_Result+=1;
 	Test_Result+=Test_Alarm_IO();
 	Test_Result+=Test_Sensor_RW();
@@ -355,8 +359,8 @@ static void Test_Laser(void){
 	Test_Result+=Test_Laser_PWM_Switch();
 	Test_Result+=Test_Laser_Power_Switch();
 	
-	itoa(Test_Result,buffer,2);
-	printf ("%08X%08X%08X 01 %s\n",UUID[2],UUID[1],UUID[0],buffer);
+	binResult=int2binStr(Test_Result,buffer);
+	printf ("%08X%08X%08X 01 %s\n",UUID[2],UUID[1],UUID[0],binResult);
 }
 
 static uint32_t Test_Alarm_IO(void){

@@ -28,8 +28,9 @@
 /* Includes ------------------------------------------------------------------*/      
 #include "utilities.h"
 #include "stm32f0xx_conf.h"
-
-
+#include <stdio.h>
+#include <limits.h>
+#include <stdlib.h>
 /* Private define ------------------------------------------------------------*/
 #define  MS_DELAY_HSI (1000)
 #define  SECOND_DELAY (1000*MS_DELAY_HSI)
@@ -93,9 +94,49 @@ int arctan2(int y, int x) {                                    // http://www.dsp
 	   return (int)(angle);
 }
 
+char * int2bin(int i)
+{
+    size_t bits = sizeof(int) * CHAR_BIT;
+	unsigned u;
+    char * str = malloc(bits + 1);
+    if(!str) return NULL;
+    str[bits] = 0;
 
+    // type punning because signed shift is implementation-defined
+    u = *(unsigned *)&i;
+    for(; bits--; u >>= 1)
+    	str[bits] = u & 1 ? '1' : '0';
 
+    return str;
+}
 
+char *int2binStr(unsigned n, char *buf)
+{
+    #define BITS (sizeof(n) * CHAR_BIT)
+
+    static char static_buf[BITS + 1];
+    int i;
+	int p=BITS - 1;
+    if (buf == NULL)
+        buf = static_buf;
+
+    for (i = BITS - 1; i >= 0; --i) {
+        buf[i] = (n & 1) ? '1' : '0';
+        n >>= 1;
+    }
+	for(i=0;i<=BITS-1;i++){
+		if(buf[i]=='1' && p==BITS-1){
+			p=i;
+			break;
+		}
+			
+	}
+
+    buf[BITS] = '\0';
+    return &buf[p];
+
+    #undef BITS
+}
 
 
 /**

@@ -95,6 +95,8 @@ uint8_t Get_Checksum(char *Data,uint16_t length);
 float ABS_F(float value);
 uint32_t millis(void);
 int arctan2(int y, int x);
+char * int2bin(int i);
+char *int2binStr(unsigned n, char *buf);
 //void DISCOVERY_Configuration(void);
 //void INT_EXTI_Config(void);
 //void INT1_EXTI_Config(void);

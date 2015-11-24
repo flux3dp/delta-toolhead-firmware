@@ -1,9 +1,9 @@
 #include "gpio.h"
 
-#define I2C_Timeout 5 			//5 millisecond
+#define I2C_Timeout 2 			//2 millisecond
 #define Detect_Priod_Time 25
 #define Gyro_Shake_Alarm_Value 10000.0
-#define Gyro_Tilt_Alarm_Value 3000.0
+#define Gyro_Tilt_Alarm_Value 4000.0
 #define Gyro_Tilt_Count 10
 #define Gyro_Calibration_Times 20
 typedef enum
