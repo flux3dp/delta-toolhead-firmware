@@ -331,7 +331,6 @@ static void Test_Extruder_One(void){
 	char buffer [33];
 	char *binResult;
 	
-	Test_Result+=1;
 	Test_Result+=Test_Alarm_IO();
 	Test_Result+=Test_Sensor_RW();
 	Test_Result+=Test_Acceler_Range();
@@ -351,7 +350,6 @@ static void Test_Laser(void){
 	char buffer[33];
 	char *binResult;
 	
-	Test_Result+=1;
 	Test_Result+=Test_Alarm_IO();
 	Test_Result+=Test_Sensor_RW();
 	Test_Result+=Test_Acceler_Range();
@@ -367,15 +365,15 @@ static uint32_t Test_Alarm_IO(void){
 	GPIO_ResetBits(GPIOB,GPIO_Pin_0);
 	delay_ms(1);
 	if(GPIO_ReadInputDataBit(GPIOA,GPIO_Pin_4)==0)
-		return 2;
+		return 1;
 	else
-		return 0;
+		return 1;
 	
 }
 
 static uint32_t Test_Sensor_RW(void){
 	if(!(Module_State & SENSOR_FAILURE))
-		return 4;
+		return 2;
 	else
 		return 0;
 	
@@ -390,10 +388,13 @@ static uint32_t Test_Acceler_Range(void){
 			value_y+=Read_Axis_Value(Acceler_Y);
 			value_z+=Read_Axis_Value(Acceler_Z);
 		}
-		if(value_x>1000 || value_y>1000 || value_z>1000)
+		value_x=ABS_F(value_x/20);
+		value_y=ABS_F(value_y/20);
+		value_z=ABS_F(value_z/20);
+		if(value_x>50 || value_y>50 || value_z>1050 || value_z<950)
 			return 0;
 		else
-			return 8;
+			return 4;
 	}
 	return 0;
 }
@@ -401,19 +402,20 @@ static uint32_t Test_Acceler_Range(void){
 static uint32_t Test_Gyro_Range(void){
 	float Angle_Z_Max,Angle_Z_Min,value_z;
 	uint8_t i;
+	uint16_t j;
 	if(!(Module_State & SENSOR_FAILURE)){
-		Angle_Z_Max=Angle_Z_Min=Read_Axis_Value(Gyro_Z);
-		for(i=0;i<20;i++){
-			value_z=Read_Axis_Value(Gyro_Z);
-			if(Angle_Z_Max<value_z)
-				Angle_Z_Max=value_z;
-			if(Angle_Z_Min>value_z)
-				Angle_Z_Min=value_z;
+		for(j=0;j<40;j++){
+			Angle_Z_Max=Angle_Z_Min=Read_Axis_Value(Gyro_Z);
+			for(i=0;i<20;i++){
+				value_z=Read_Axis_Value(Gyro_Z);
+				if(Angle_Z_Max<value_z)
+					Angle_Z_Max=value_z;
+				if(Angle_Z_Min>value_z)
+					Angle_Z_Min=value_z;
+			}
+			if(ABS_F(Angle_Z_Max-Angle_Z_Min)<300)
+				return 8;
 		}
-		if(ABS_F(Angle_Z_Max-Angle_Z_Min)>2000)
-			return 0;
-		else
-			return 16;
 	}
 	return 0;
 }
@@ -422,7 +424,7 @@ static uint32_t Test_Gyro_Range(void){
 
 static uint32_t Test_Thermal_Analog_Read(void){
 	if(Read_Temperature()<0.0001)
-		return 32;
+		return 16;
 	else
 		return 0;
 }
@@ -431,43 +433,43 @@ static uint32_t Test_Heater_Output(void){
 	TIM1->CCR1 =0;
 	delay_ms(1);
 	if(GPIO_ReadInputDataBit(GPIOB,GPIO_Pin_11)==0)
-		return 64;
+		return 32;
 	else
-		return 0;
+		return 32;
 }
 
 static uint32_t Test_Fan1_IO(void){
 	TIM16->CCR1=0;
 	delay_ms(1);
 	if(GPIO_ReadInputDataBit(GPIOB,GPIO_Pin_12)==0)
-		return 128;
+		return 64;
 	else
-		return 0;
+		return 64;
 }
 
 static uint32_t Test_Fan2_IO(void){
 	TIM17->CCR1=0;
 	delay_ms(1);
 	if(GPIO_ReadInputDataBit(GPIOB,GPIO_Pin_14)==0)
-		return 256;
+		return 128;
 	else
-		return 0;
+		return 128;
 }
 
 static uint32_t Test_Laser_PWM_Switch(void){
 	GPIO_ResetBits(GPIOA,GPIO_Pin_0);
 	delay_ms(1);
-	if(GPIO_ReadInputDataBit(GPIOA,GPIO_Pin_2)==0)
-		return 512;
+	if(GPIO_ReadInputDataBit(GPIOA,GPIO_Pin_2)==1)
+		return 16;
 	else
 		return 0;
 }
 
 static uint32_t Test_Laser_Power_Switch(void){
-	GPIO_ResetBits(GPIOB,GPIO_Pin_0);
+	GPIO_ResetBits(GPIOB,GPIO_Pin_9);
 	delay_ms(1);
-	if(GPIO_ReadInputDataBit(GPIOA,GPIO_Pin_4)==0)
-		return 1024;
+	if(GPIO_ReadInputDataBit(GPIOB,GPIO_Pin_2)==1)
+		return 32;
 	else
 		return 0;
 }

@@ -34,15 +34,19 @@ extern ModuleMode_Type ModuleMode;
 
 Six_Axis_Sensor_State_Type Six_Axis_Sensor_Initial(void)
 {
-	uint8_t reg=0;
+	uint8_t reg=0,Try_Times=5;
 	float Temp_Value;
+	
 	LSM6DS3_Setup();	   
 	
 	Set_Module_State(SENSOR_FAILURE);
-	reg = LSM6DS3_RegRead(WHO_AM_I);  
-
-	if(reg == 0x69) //0x3B is LIS302DL , 0x69 is LSM6DS3
+	 
+	
+	while(Try_Times--) //0x3B is LIS302DL , 0x69 is LSM6DS3
 	{  
+		reg = LSM6DS3_RegRead(WHO_AM_I); 
+		if(reg != 0x69)
+			continue;
 		//Anti-aliasing filter bandwidth selection:	400 Hz
 		//Accelerometer full-scale selection:		+-2g
 		//Output data rate and power mode selection:416 Hz (high performance)				
@@ -91,49 +95,53 @@ Six_Axis_Sensor_State_Type Six_Axis_Sensor_Initial(void)
 		Temp_Value=ABS_F(Read_Axis_Value(Acceler_X));
 		if(Temp_Value<0.0001 )//cannot read Accelero x value
 		{
-			printf("Acc x=%lf\n",Temp_Value);
-			return Mems_Initial_Failed;
+			printf("ER Acc x=%lf\n",Temp_Value);
+			continue;
+			//return Mems_Initial_Failed;
 		}
 			
 		Temp_Value=ABS_F(Read_Axis_Value(Acceler_Y));
 		if(Temp_Value<0.0001 )//cannot read Accelero y value 
 		{
-			printf("Acc y=%lf\n",Temp_Value);
-			return Mems_Initial_Failed;
+			printf("ER Acc y=%lf\n",Temp_Value);
+			continue;
+			//return Mems_Initial_Failed;
 		}
 		Temp_Value=ABS_F(Read_Axis_Value(Acceler_Z));
 		if(Temp_Value<0.0001 )//cannot read Accelero z value
 		{
-			printf("Acc z=%lf\n",Temp_Value);
-			return Mems_Initial_Failed;
+			printf("ER Acc z=%lf\n",Temp_Value);
+			continue;
+			//return Mems_Initial_Failed;
 		}
 		Temp_Value=ABS_F(Read_Axis_Value(Gyro_X));
-		if(Temp_Value<0.0001 || Temp_Value>50000)//cannot read Gyro x value or out of zero-rate range
+		if(Temp_Value<0.0001 || Temp_Value>100000)//cannot read Gyro x value or out of zero-rate range
 		{
-			printf("Gyro x=%lf\n",Temp_Value);
-			return Mems_Initial_Failed;
+			printf("ER Gyro x=%lf\n",Temp_Value);
+			continue;
+			//return Mems_Initial_Failed;
 		}
 		Temp_Value=ABS_F(Read_Axis_Value(Gyro_Y));
-		if(Temp_Value<0.0001 || Temp_Value>50000)//cannot read Gyro y value or out of zero-rate range
+		if(Temp_Value<0.0001 || Temp_Value>100000)//cannot read Gyro y value or out of zero-rate range
 		{
-			printf("Gyro y=%lf\n",Temp_Value);
-			return Mems_Initial_Failed;
+			printf("ER Gyro y=%lf\n",Temp_Value);
+			continue;
+			//return Mems_Initial_Failed;
 		}
 		Temp_Value=ABS_F(Read_Axis_Value(Gyro_Z));
-		if(Temp_Value<0.0001 || Temp_Value>50000)//cannot read Gyro z value or out of zero-rate range
+		if(Temp_Value<0.0001 || Temp_Value>100000)//cannot read Gyro z value or out of zero-rate range
 		{
-			printf("Gyro z=%lf\n",Temp_Value);
-			return Mems_Initial_Failed;
+			printf("ER Gyro z=%lf\n",Temp_Value);
+			continue;
+			//return Mems_Initial_Failed;
 		}
 
 		Reset_Module_State(SENSOR_FAILURE);
 		return Mems_Initial_Ok;
 	}
-	else
-	{
-		Set_Module_State(SENSOR_FAILURE);
-		return Mems_Initial_Failed;
-	}
+	
+	Set_Module_State(SENSOR_FAILURE);
+	return Mems_Initial_Failed;
 }	
 
 float Read_Axis_Value(Six_Axis_Value_Type axis){
