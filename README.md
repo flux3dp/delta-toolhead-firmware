@@ -10,7 +10,7 @@ Printer head firmware protocol
 
 ➥  `1 PING *[CHKSUM]\n`
 
-⇠ `1 OK PONG ER:0 RT:123.3,212.3 TT:200.0,230.0 FA:255 *[CHKSUM]\n` (for extruder)
+⇠ `1 OK PONG ER:0 RT:123.3 TT:200.0 FA:255 *[CHKSUM]\n` (for extruder)
 
 ⇠ `1 OK PONG ER:0 *[CHKSUM]\n` (for laser)
 
@@ -69,7 +69,7 @@ Note2:if TT:NAN that is target temperature had not been setted
 
 ⇠ `1 ER:128 FAN_FAILURE\n`
 
-Note: ER are general error responses,all commands could respond,ER:1~64 are only responded by PONG.
+Note: ER are general error responses,all commands could respond,ER:1~128 are only responded by PONG.
 
 DEBUG MODE:
 
