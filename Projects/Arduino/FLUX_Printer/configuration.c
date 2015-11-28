@@ -170,6 +170,7 @@ void Gerneral_Timer_Config(void){
 	TIM_ITConfig(TIM6, TIM_IT_Update, ENABLE);
 }
 
+
 void Heater_Config(void){
 	GPIO_InitTypeDef GPIO_InitStructure; 
 	TIM_TimeBaseInitTypeDef  TIM_TimeBaseStructure;
@@ -182,8 +183,8 @@ void Heater_Config(void){
 
 	RCC_APB2PeriphClockCmd(RCC_APB2Periph_TIM1, ENABLE); 
 	
-	//Configure thermal reading GPIO PA0
-	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_0;
+	//Configure thermal reading GPIO PA0 & NTC PA1
+	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_0|GPIO_Pin_1;
 	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AN;
 	GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL ;
 	GPIO_Init(GPIOA, &GPIO_InitStructure);

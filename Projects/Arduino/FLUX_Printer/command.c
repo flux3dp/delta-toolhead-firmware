@@ -46,6 +46,8 @@ static uint32_t Test_Thermal_Analog_Read(void);
 
 static uint32_t Test_Heater_Output(void);
 
+static uint32_t Test_NTC(void);
+
 static uint32_t Test_Fan1_IO(void);
 
 static uint32_t Test_Fan2_IO(void);
@@ -263,11 +265,15 @@ uint16_t Read_ADC_Value(ADC_Channel_Type channel){
 
 	/* Convert the ADC1 Channel 0 with 239.5 Cycles as sampling time */ 
 	if(channel==Temperature_Channel)
-		ADC_ChannelConfig(ADC1, ADC_Channel_0, ADC_SampleTime_239_5Cycles); //ADC_SampleTime_55_5Cycles 
+		ADC_ChannelConfig(ADC1, ADC_Channel_0, ADC_SampleTime_239_5Cycles); //ADC_SampleTime_239_5Cycles
+	else if(channel==NTC_Channel)
+		ADC_ChannelConfig(ADC1, ADC_Channel_1, ADC_SampleTime_239_5Cycles); //ADC_SampleTime_239_5Cycles 
 	else if(channel==ID0_Channel)
 		ADC_ChannelConfig(ADC1, ADC_Channel_6, ADC_SampleTime_239_5Cycles);  //ADC_SampleTime_239_5Cycles
 	else if(channel==ID1_Channel)
 		ADC_ChannelConfig(ADC1, ADC_Channel_7, ADC_SampleTime_239_5Cycles);  
+	else
+		return 0;
 	/* ADC Calibration */
 	ADC_GetCalibrationFactor(ADC1);
 
@@ -335,11 +341,13 @@ static void Test_Extruder_One(void){
 	Test_Result+=Test_Sensor_RW();
 	Test_Result+=Test_Acceler_Range();
 	Test_Result+=Test_Gyro_Range();
-	Test_Result+=Test_Thermal_Analog_Read();
-	Test_Result+=Test_Heater_Output();
-	Test_Result+=Test_Fan1_IO();
-	Test_Result+=Test_Fan2_IO();
 	
+	Test_Result+=Test_Heater_Output();
+	//Test_Result+=Test_Fan1_IO();
+	Test_Result+=Test_NTC();
+	Test_Result+=Test_Fan2_IO();
+	delay_ms(500);
+	Test_Result+=Test_Thermal_Analog_Read();
 	
 	binResult=int2binStr(Test_Result,buffer);
 	printf ("%08X%08X%08X 10 %s\n",UUID[2],UUID[1],UUID[0],binResult);
@@ -367,7 +375,7 @@ static uint32_t Test_Alarm_IO(void){
 	if(GPIO_ReadInputDataBit(GPIOA,GPIO_Pin_4)==0)
 		return 1;
 	else
-		return 1;
+		return 0;
 	
 }
 
@@ -435,7 +443,16 @@ static uint32_t Test_Heater_Output(void){
 	if(GPIO_ReadInputDataBit(GPIOB,GPIO_Pin_11)==0)
 		return 32;
 	else
-		return 32;
+		return 0;
+}
+
+static uint32_t Test_NTC(void){
+	uint16_t ADC_Value=Read_ADC_Value(NTC_Channel);
+
+	if(ADC_Value>83 && ADC_Value<283)
+		return 64;
+	else
+		return 0;
 }
 
 static uint32_t Test_Fan1_IO(void){

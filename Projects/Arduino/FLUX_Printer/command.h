@@ -14,6 +14,7 @@
 typedef enum
 {
 	Temperature_Channel,
+	NTC_Channel,
 	ID0_Channel,
 	ID1_Channel
 }ADC_Channel_Type;

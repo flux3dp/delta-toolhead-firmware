@@ -116,25 +116,37 @@ uint8_t LSM6DS3_RegRead(uint8_t reg)
 	I2C_TransferHandling(I2C1, LIS302DL_ADDR, 1, I2C_SoftEnd_Mode, I2C_Generate_Start_Write);
 	StartTime=millis();
 	while(!(I2C1->ISR & I2C_ISR_TXIS)){
-		if(millis()-StartTime > I2C_Timeout) break;
+		if(millis()-StartTime > I2C_Timeout){
+			I2C1->ICR = I2C_ICR_STOPCF;
+			return 0;
+		}
 	}
 		
 	I2C_SendData(I2C1, reg);
 	StartTime=millis();
 	while(!(I2C1->ISR & I2C_ISR_TC)){
-		if(millis()-StartTime > I2C_Timeout) break;
+		if(millis()-StartTime > I2C_Timeout){
+			I2C1->ICR = I2C_ICR_STOPCF;
+			return 0;
+		}
 	}
 		
 	I2C_TransferHandling(I2C1, LIS302DL_ADDR, 1, I2C_AutoEnd_Mode, I2C_Generate_Start_Read);
 	StartTime=millis();
 	while(!(I2C1->ISR & I2C_ISR_RXNE)){
-		if(millis()-StartTime > I2C_Timeout) break;
+		if(millis()-StartTime > I2C_Timeout){
+			I2C1->ICR = I2C_ICR_STOPCF;
+			return 0;
+		}
 	}
 		
 	tmp = I2C_ReceiveData(I2C1);
 	StartTime=millis();
 	while(!(I2C1->ISR & I2C_ISR_STOPF)){
-		if(millis()-StartTime > I2C_Timeout) break;
+		if(millis()-StartTime > I2C_Timeout){
+			I2C1->ICR = I2C_ICR_STOPCF;
+			return 0;
+		}
 	}
 	
 	I2C1->ICR = I2C_ICR_STOPCF;
@@ -155,19 +167,28 @@ void LSM6DS3_RegWrite(uint8_t reg, uint8_t data)
 	I2C_TransferHandling(I2C1, LIS302DL_ADDR, 1, I2C_Reload_Mode, I2C_Generate_Start_Write);
 	StartTime=millis();
 	while(!(I2C1->ISR & I2C_ISR_TXIS)){
-		if(millis()-StartTime > I2C_Timeout) break;
+		if(millis()-StartTime > I2C_Timeout){
+			I2C1->ICR = I2C_ICR_STOPCF;
+			return;
+		}
 	}
 
 	I2C_SendData(I2C1, reg);
 	StartTime=millis();
 	while(!(I2C1->ISR & I2C_ISR_TCR)){
-		if(millis()-StartTime > I2C_Timeout) break;
+		if(millis()-StartTime > I2C_Timeout){
+			I2C1->ICR = I2C_ICR_STOPCF;
+			return;
+		}
 	}
 
 	I2C_AutoEndCmd(I2C1, ENABLE);
 	StartTime=millis();
 	while(!(I2C1->ISR & I2C_ISR_TXIS)){
-		if(millis()-StartTime > I2C_Timeout) break;
+		if(millis()-StartTime > I2C_Timeout){
+			I2C1->ICR = I2C_ICR_STOPCF;
+			return;
+		}
 	}
 
 	I2C_SendData(I2C1, data);
@@ -175,7 +196,10 @@ void LSM6DS3_RegWrite(uint8_t reg, uint8_t data)
 	I2C_ReloadCmd(I2C1, DISABLE);
 	StartTime=millis();
 	while(!(I2C1->ISR & I2C_ISR_STOPF)){
-		if(millis()-StartTime > I2C_Timeout) break;
+		if(millis()-StartTime > I2C_Timeout){
+			I2C1->ICR = I2C_ICR_STOPCF;
+			return;
+		}
 	}
 		
 	I2C1->ICR = I2C_ICR_STOPCF;
