@@ -59,17 +59,17 @@ Note2:if TT:NAN that is target temperature had not been setted
 
 ⇠ `1 ER:4 NO_HELLO\n`
 
-⇠ `1 ER:8 PID_OUT_OF_CONTROL\n`  Note: 64 -> 8
+⇠ `1 ER:8 SENSOR_CALIBRATION_FAILURE\n`
 
-⇠ `1 ER:16 LASER_DOWN\n`  Note: New
+⇠ `1 ER:16 SHAKE\n`
 
-⇠ `1 ER:128 SENSOR_CALIBRATION_FAILURE\n`  Note: 8 -> 128
+⇠ `1 ER:32 TILT\n`
 
-⇠ `1 ER:256 SHAKE\n`  Note: 16 -> 256
+⇠ `1 ER:64 PID_OUT_OF_CONTROL\n`
 
-⇠ `1 ER:512 TILT\n`  Note: 32 -> 512
+⇠ `1 ER:128 FAN_FAILURE\n`
 
-⇠ `1 ER:128 FAN_FAILURE\n`  Note: 128 -> 1024
+⇠ `1 ER:256 LASER_DOWN\n`  Note: New
 
 Note: ER are general error responses,all commands could respond,ER:1~128 are only responded by PONG.
 
