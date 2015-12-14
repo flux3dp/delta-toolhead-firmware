@@ -69,6 +69,8 @@ Note2:if TT:NAN that is target temperature had not been setted
 
 ⇠ `1 ER:128 FAN_FAILURE\n`
 
+⇠ `1 ER:256 LASER_DOWN\n`  Note: New
+
 Note: ER are general error responses,all commands could respond,ER:1~128 are only responded by PONG.
 
 DEBUG MODE:
