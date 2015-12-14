@@ -212,7 +212,6 @@ void Six_Axis_Sensor_Calibration(void){
 	
 	//printf("acc X'=%.4f Y'=%.4f Z'=%.4f\n",ABS_F(X_Acc_Value),ABS_F(Y_Acc_Value),ABS_F(Z_Acc_Value));
 	
-		
 	if(X_Acc_Value<=50 && Y_Acc_Value<=50 && Z_Acc_Value<=1050 && Z_Acc_Value>=950){ //According to datasheet zero-g = +-40mg
 		Z_Gyro_Value=Read_Axis_Value(Gyro_Z);
 		if(Gyro_Calibration_Count==Gyro_Calibration_Times)
@@ -235,7 +234,29 @@ void Six_Axis_Sensor_Calibration(void){
 		}
 	}else{
 		return;
-	}
+	}	
+//	if(X_Acc_Value<=50 && Y_Acc_Value<=50 && Z_Acc_Value<=1050 && Z_Acc_Value>=950){ //According to datasheet zero-g = +-40mg
+//		Z_Gyro_Value=Read_Axis_Value(Gyro_Z);
+//		if(Gyro_Calibration_Count==Gyro_Calibration_Times)
+//			Z_Angle_Max=Z_Angle_Min=Z_Gyro_Value;
+//		if(Z_Angle_Max<Z_Gyro_Value)
+//			Z_Angle_Max=Z_Gyro_Value;
+//		if(Z_Angle_Min>Z_Gyro_Value)
+//			Z_Angle_Min=Z_Gyro_Value;
+//		Z_Angle_Sum+=Z_Gyro_Value;
+//		Gyro_Calibration_Count--;
+//		if(ABS_F(Z_Angle_Max-Z_Angle_Min)>400.0){
+//			Gyro_Calibration_Count=Gyro_Calibration_Times;
+//			Z_Angle_Sum=0;
+//			return;
+//		}
+//		if(!Gyro_Calibration_Count){
+//			Z_Angle_Offset=(float)(-Z_Angle_Sum/Gyro_Calibration_Times);
+//			Reset_Module_State(SENSOR_CALIBRATION_FAILURE);					
+//		}
+//	}else{
+//		return;
+//	}
 
 	
 }

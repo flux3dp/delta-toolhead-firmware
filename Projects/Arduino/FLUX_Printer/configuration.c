@@ -441,6 +441,11 @@ void Laser_Switch_Config(void){
 	GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;	//µL´£¤É¹qªý
 	GPIO_Init(GPIOB, &GPIO_InitStructure);
 	
+	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_2;
+	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN;
+	GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
+	GPIO_Init(GPIOB, &GPIO_InitStructure);
+	
 	GPIO_SetBits(GPIOA,GPIO_Pin_0);
 	GPIO_SetBits(GPIOB,GPIO_Pin_9);
 }
@@ -513,10 +518,7 @@ static void Laser_Self_Test_IO_Config(void){
 	GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_UP;
 	GPIO_Init(GPIOB, &GPIO_InitStructure);
 	
-	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_2;
-	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN;
-	GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
-	GPIO_Init(GPIOB, &GPIO_InitStructure);
+	
 }
 
 static void Extruder_One_Self_Test_IO_Config(void){
@@ -532,6 +534,6 @@ static void Extruder_One_Self_Test_IO_Config(void){
 	
 	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_11;
 	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN;
-	GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_UP;
+	GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
 	GPIO_Init(GPIOB, &GPIO_InitStructure);
 }

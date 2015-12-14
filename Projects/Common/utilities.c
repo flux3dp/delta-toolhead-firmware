@@ -65,7 +65,7 @@ uint8_t Get_Checksum(char *Data,uint16_t length){
 }
 
 float ABS_F(float value){
-	if(value<0)
+	if(value<0.000001)
 		return value*(-1);
 	else
 		return value;

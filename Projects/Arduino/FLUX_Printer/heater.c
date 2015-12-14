@@ -11,6 +11,7 @@ static uint32_t Last_PID_Time=0;
 static bool Auto_PID_Completed = FALSE;
 static bool pid_reset = TRUE;
 
+uint16_t RTC_ADC_Value=0;
 //For PID_Control
 static float Kp=Kp_Default;
 static float Ki=Ki_Default;
@@ -72,9 +73,13 @@ void PID_Handler(void){
 		Set_Exhalation_Fan_PWM(255);//close fan
 	}
 	
-	if(Target_Temperature == 0 || RT > Max_Temperature){
+	if(Target_Temperature == 0){
 		Set_Heater_PWM(0);
 		//fan
+		return;
+	}else if( RT > Max_Temperature+10 || RTC_ADC_Value>583){
+		Set_Heater_PWM(0);
+		Set_Module_State(PID_OUT_OF_CONTROL);
 		return;
 	}
 	if(Auto_PID_Completed){
@@ -108,12 +113,14 @@ uint8_t Get_Pid_Output(void) {
 	if (pid_error > PID_FUNCTIONAL_RANGE) {
 		pid_output = PID_MAX;
 		pid_reset = TRUE;
-	}
-	else if (pid_error < -PID_FUNCTIONAL_RANGE || Target_Temperature <= 0.0 || current_temperature> Max_Temperature) {
+	}else if( current_temperature> (Max_Temperature+10)){
 		pid_output = 0;
 		pid_reset = TRUE;
-	}
-	else {
+		Set_Module_State(PID_OUT_OF_CONTROL);
+	}else if (pid_error < -PID_FUNCTIONAL_RANGE || Target_Temperature <= 0.0 || current_temperature> Max_Temperature) {
+		pid_output = 0;
+		pid_reset = TRUE;
+	}else {
 		if (pid_reset) {
 			temp_iState = 0.0;
 			pid_reset = FALSE;
@@ -138,6 +145,7 @@ uint8_t Get_Pid_Output(void) {
 		}
 	}
 	temp_dState = current_temperature;
+	Reset_Module_State(PID_OUT_OF_CONTROL);
 	//printf("E:%.1lf T:%.1lf O:%.1lf P:%.1lf I:%.1lf D:%.1lf\n",pid_error-1.0,current_temperature,pid_output,pTerm,iTerm,dTerm);
 	return (uint8_t)pid_output;
 }

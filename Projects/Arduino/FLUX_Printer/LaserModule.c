@@ -81,3 +81,10 @@ void Laser_Switch_Off(void){
 	GPIO_SetBits(GPIOB,GPIO_Pin_9);
 }
 
+void Detect_Laser_Power(void){
+	if(GPIO_ReadInputDataBit(GPIOB,GPIO_Pin_2)==1){
+		Reset_Module_State(LASER_DOWN);
+	}else{
+		Set_Module_State(LASER_DOWN);
+	}
+}

@@ -25,7 +25,6 @@ volatile uint32_t CmdTimeout_count=0;
 
 extern volatile uint16_t Fan1_Count;
 extern volatile uint16_t Fan2_Count;
-
 static void RCC_HSI_Configuration(void);
 static void Feed_WatchDog(void);
 
@@ -35,6 +34,8 @@ extern volatile uint32_t Module_State;
 extern volatile bool Debug_Mode;
 extern volatile bool Show_Sensor_Data;
 
+extern uint16_t RTC_ADC_Value;
+extern void Detect_Laser_Power(void);
 
 void USART1_IRQHandler(void) 
 {
@@ -185,6 +186,8 @@ int main(){
 		
 		if(ModuleMode==FLUX_ONE_EXTRUDER_MODULE){
 			PID_Handler(); 
+		}else if(ModuleMode==FLUX_LASER_MODULE){
+			Detect_Laser_Power();
 		}
 		
 		Time_Count=millis()-LastTime;
@@ -192,6 +195,10 @@ int main(){
 			LastTime=millis();
 			if(Show_Sensor_Data)
 				Show_Sensor_RawData();
+			if(ModuleMode==FLUX_ONE_EXTRUDER_MODULE){
+				//RTC_ADC_Value=Read_ADC_Value(NTC_Channel);	
+				//printf("rtc value=%d\n",RTC_ADC_Value);
+			}
 		}
 			
 		if(!(Module_State & SENSOR_FAILURE)){

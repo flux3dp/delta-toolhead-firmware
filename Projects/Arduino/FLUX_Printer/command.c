@@ -52,6 +52,8 @@ static uint32_t Test_Fan1_IO(void);
 
 static uint32_t Test_Fan2_IO(void);
 
+static bool Test_Six_Axis_Sensor_Calibration(void);
+
 extern void resetUartBuffer(Uart_BufferType *buff);
 
 void Module_State_Initial(void){
@@ -325,7 +327,7 @@ void Self_Test(void){
 			case FLUX_LASER_MODULE:
 				Test_Laser();
 				break;
-			case Unknow:
+			default:
 				//could not recognize module type
 				printf ("%08X%08X%08X 00 %s\n",UUID[2],UUID[1],UUID[0],"0");
 				break;
@@ -411,24 +413,73 @@ static uint32_t Test_Gyro_Range(void){
 	float Angle_Z_Max,Angle_Z_Min,value_z;
 	uint8_t i;
 	uint16_t j;
+	uint16_t t_start=millis();
+	bool Test_Result=FALSE;
 	if(!(Module_State & SENSOR_FAILURE)){
-		for(j=0;j<40;j++){
-			Angle_Z_Max=Angle_Z_Min=Read_Axis_Value(Gyro_Z);
-			for(i=0;i<20;i++){
-				value_z=Read_Axis_Value(Gyro_Z);
-				if(Angle_Z_Max<value_z)
-					Angle_Z_Max=value_z;
-				if(Angle_Z_Min>value_z)
-					Angle_Z_Min=value_z;
+		while(!Test_Result){
+			if(millis()-t_start>4000){
+				return 0;
+			}else{
+				Test_Result=Test_Six_Axis_Sensor_Calibration();
 			}
-			if(ABS_F(Angle_Z_Max-Angle_Z_Min)<300)
-				return 8;
 		}
+		return 8;
 	}
 	return 0;
+	
+//	for(j=0;j<40;j++){
+//			Angle_Z_Max=Angle_Z_Min=Read_Axis_Value(Gyro_Z);
+//			for(i=0;i<20;i++){
+//				value_z=Read_Axis_Value(Gyro_Z);
+//				if(Angle_Z_Max<value_z)
+//					Angle_Z_Max=value_z;
+//				if(Angle_Z_Min>value_z)
+//					Angle_Z_Min=value_z;
+//			}
+//			if(ABS_F(Angle_Z_Max-Angle_Z_Min)<300)
+//				return 8;
+//		}
 }
 
 
+static bool Test_Six_Axis_Sensor_Calibration(void){
+	
+	float X_Acc_Value=0,Y_Acc_Value=0,Z_Acc_Value=0;
+	float Z_Gyro_Value=0;
+	uint8_t i;
+	const uint8_t Count=5;
+	uint8_t Gyro_Calibration_Count=50;
+	float Z_Max,Z_Min;
+	Z_Gyro_Value=Read_Axis_Value(Gyro_Z);	
+	Z_Max=Z_Min=Z_Gyro_Value;
+	while(Gyro_Calibration_Count--){//count>0
+		for(i=0;i<Count;i++){
+			X_Acc_Value+=Read_Axis_Value(Acceler_X);
+			Y_Acc_Value+=Read_Axis_Value(Acceler_Y);
+			Z_Acc_Value+=Read_Axis_Value(Acceler_Z);
+		}
+		
+		X_Acc_Value=ABS_F(X_Acc_Value/Count);
+		Y_Acc_Value=ABS_F(Y_Acc_Value/Count);
+		Z_Acc_Value=ABS_F(Z_Acc_Value/Count);
+		
+		//printf("acc X'=%.4f Y'=%.4f Z'=%.4f\n",ABS_F(X_Acc_Value),ABS_F(Y_Acc_Value),ABS_F(Z_Acc_Value));
+		if(X_Acc_Value<=50 && Y_Acc_Value<=50 && Z_Acc_Value<=1050 && Z_Acc_Value>=950){ //According to datasheet zero-g = +-40mg
+			Z_Gyro_Value=Read_Axis_Value(Gyro_Z);
+			//printf("Gz=%.1lf",Z_Gyro_Value);
+			
+			if(Z_Max<Z_Gyro_Value)
+				Z_Max=Z_Gyro_Value;
+			if(Z_Min>Z_Gyro_Value)
+				Z_Min=Z_Gyro_Value;
+			if(ABS_F(Z_Max-Z_Min)>200.0){
+				//printf("%.1f>%.1f\n",Z_Max,Z_Min);
+				return FALSE;
+			}
+		}
+	}
+	return TRUE;
+}
 
 static uint32_t Test_Thermal_Analog_Read(void){
 	if(Read_Temperature()<0.0001)
@@ -439,8 +490,8 @@ static uint32_t Test_Thermal_Analog_Read(void){
 
 static uint32_t Test_Heater_Output(void){
 	TIM1->CCR1 =0;
-	delay_ms(1);
-	if(GPIO_ReadInputDataBit(GPIOB,GPIO_Pin_11)==0)
+	delay_ms(2);
+	if(GPIO_ReadInputDataBit(GPIOB,GPIO_Pin_11)==1)
 		return 32;
 	else
 		return 0;

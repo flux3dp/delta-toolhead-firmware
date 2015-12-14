@@ -8,7 +8,7 @@
 #define FLASH_USER_END_ADDR     ((uint32_t)0x0803FC00)   /* End @ of user Flash area */
 
 #define Extruder_Cmd_Timeout 300000
-#define Laser_Cmd_Timeout 1200
+#define Laser_Cmd_Timeout 2000
 #define UUID STM32F0_UUID
 
 typedef enum
@@ -30,6 +30,7 @@ typedef enum
 	TILT				=32,
 	PID_OUT_OF_CONTROL	=64,
 	FAN_FAILURE			=128,
+	LASER_DOWN			=256,
 }Module_State_Enum;
 
 //typedef struct
