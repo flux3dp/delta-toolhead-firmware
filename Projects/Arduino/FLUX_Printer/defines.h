@@ -1,4 +1,4 @@
-#define Firmware_Version	1.1209
+#define Firmware_Version	2.0104
 #define Firmware_Name		"OHMAMA"
 #define STM32F0_UUID ((uint32_t *)0x1FFFF7AC)
 #define Enable_IWDG 1

@@ -10,6 +10,8 @@
 #include "utilities.h"
 #include "Six_Axis_Sensor.h"
 #include "fan.h"
+
+uint32_t Fan_Start=0;
 extern float Target_Temperature;
 //extern Module_State_Type Module_State;
 extern volatile uint32_t Module_State;
@@ -88,6 +90,8 @@ void Extruder_One_Cmd_Handler(void){
 				}else if(Int_Temp >= 0 && Int_Temp <= 255){
 					Set_Inhalation_Fan_PWM(Int_Temp);
 					sprintf(Response_Buffer,"1 OK FAN ");
+
+                    
 				}else{
 					sprintf(Response_Buffer,"1 ER PARAM_OUT_OF_RANGE ");
 				}

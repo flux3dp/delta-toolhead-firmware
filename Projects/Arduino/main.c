@@ -186,6 +186,7 @@ int main(){
 		
 		if(ModuleMode==FLUX_ONE_EXTRUDER_MODULE){
 			PID_Handler(); 
+            Fan_Management();
 		}else if(ModuleMode==FLUX_LASER_MODULE){
 			Detect_Laser_Power();
 		}

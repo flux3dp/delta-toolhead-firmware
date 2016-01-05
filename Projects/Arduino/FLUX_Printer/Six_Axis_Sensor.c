@@ -10,11 +10,14 @@
 
 //for detecting harm postures
 static uint32_t Last_Detect_Time=0;
+static uint32_t Last_Detect_Posture_Time=0;
 static uint16_t Tilt_Trigger_Count=0;
 static uint16_t Shake_Trigger_Count=0;
 static uint32_t Trigger_Interval=0;
 static uint8_t Gyro_Value_Count=0;
+static uint8_t Tilt_Times=0;
 
+//static uint32_t 
 //for Agle_Displacement
 static float X_Angle=0.0,Y_Angle=0.0,Z_Angle=0.0;
 
@@ -147,6 +150,8 @@ Six_Axis_Sensor_State_Type Six_Axis_Sensor_Initial(void)
 float Read_Axis_Value(Six_Axis_Value_Type axis){
 	short Axis_Data=0,i;
 	float Axis_Value=0.0;
+
+    
 	uint8_t Count=10;
 	switch(axis){
 			case Acceler_X:
@@ -326,23 +331,30 @@ void Show_Agle_Displacement(void){
 }
 
 void Detect_Gyro_Harm_Posture(void){
-	float Gyro_Z_Value;
+	float Gyro_X_Value,Gyro_Y_Value,Gyro_Z_Value;
 
-	Gyro_Z_Value=Read_Axis_Value(Gyro_Z);
-	
+	Gyro_X_Value=Read_Axis_Value(Gyro_X);
+	Gyro_Y_Value=Read_Axis_Value(Gyro_Y);
+    Gyro_Z_Value=Read_Axis_Value(Gyro_Z);
 	//detect shake
-	if(Gyro_Z_Value>=Gyro_Shake_Alarm_Value || Gyro_Z_Value<=-Gyro_Shake_Alarm_Value){
+	if(ABS_F(Gyro_X_Value)>=Gyro_Shake_Alarm_Value || ABS_F(Gyro_Y_Value)>=Gyro_Shake_Alarm_Value || ABS_F(Gyro_Z_Value)>=Gyro_Shake_Alarm_Value){
 		if(ModuleMode==FLUX_LASER_MODULE && !Debug_Mode)
 			Laser_Switch_Off();
 		
 		Shake_Trigger_Count++;
-		if(Shake_Trigger_Count>=10){
+        
+        if(Debug_Mode){
+            printf("S ");           
+            printf("%.2f\t\t%.2f\t%.2f\t",Gyro_X_Value,Gyro_Y_Value,Gyro_Z_Value);
+            printf("\n");
+        }	
+		if(Shake_Trigger_Count>=4){
 			Set_Module_State(SHAKE);
 			Alarm_On();
 			Shake_Trigger_Count=0;
 			if(Debug_Mode){
 				printf("Shake ");           
-				printf("%.2f\t\t",Gyro_Z_Value);
+				printf("%.2f\t\t%.2f\t%.2f\t",Gyro_X_Value,Gyro_Y_Value,Gyro_Z_Value);
 				printf("\n");
 			}	
 		}
@@ -350,35 +362,45 @@ void Detect_Gyro_Harm_Posture(void){
 	}
 
 	//detect tilt
-	if(Trigger_Interval>=1)
-		Trigger_Interval++;
-	
-	if(Gyro_Z_Value >= Gyro_Tilt_Alarm_Value || Gyro_Z_Value <= -Gyro_Tilt_Alarm_Value){
-		Trigger_Interval++;
-		Tilt_Trigger_Count++;
-	}
-		
-	if(Tilt_Trigger_Count>=4){
-		if(ModuleMode==FLUX_LASER_MODULE && !Debug_Mode)
-			Laser_Switch_Off();
+    if(millis()-Last_Detect_Time>1000){
+        if(Trigger_Interval>=1)
+            Trigger_Interval++;
+        
+        if(Gyro_Z_Value >= Gyro_Tilt_Alarm_Value || Gyro_Z_Value <= -Gyro_Tilt_Alarm_Value){
+            Trigger_Interval++;
+            Tilt_Trigger_Count++;
+        }
+            
+        if(Tilt_Trigger_Count>=3){
+            if(ModuleMode==FLUX_LASER_MODULE && !Debug_Mode)
+                Laser_Switch_Off();
 
-		Trigger_Interval=0;
-		Tilt_Trigger_Count=0;
-		Set_Module_State(TILT);
-		Alarm_On();
-		
-		if(Debug_Mode){
-			printf("Tilt ");           
-			printf("%.2f",Gyro_Z_Value);
-			printf("\n");
-		}
-	}
-	
-	if(Trigger_Interval>51){
-		Trigger_Interval=0;
-		Tilt_Trigger_Count=0;
-		Shake_Trigger_Count=0;
-	}
+            Trigger_Interval=0;
+            Tilt_Trigger_Count=0;
+            //Set_Module_State(TILT);
+            Alarm_On();
+            Tilt_Times++;
+            if(Tilt_Times>=3){
+                Set_Module_State(TILT);
+                Tilt_Times=0;
+            }
+            Last_Detect_Time=millis();
+            if(Debug_Mode){
+                printf("Tilt ");           
+                printf("%.2f",Gyro_Z_Value);
+                printf("\n");
+            }
+        }
+        
+        if(millis()-Last_Detect_Posture_Time>500){
+            Trigger_Interval=0;
+            Tilt_Trigger_Count=0;
+            Shake_Trigger_Count=0;
+            Last_Detect_Posture_Time=millis();
+        }
+    }
+    if(millis()-Last_Detect_Time>300000)//300s=5minutes
+        Tilt_Times=0;
 
 }
 
