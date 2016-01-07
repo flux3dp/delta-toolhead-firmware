@@ -22,6 +22,20 @@ typedef enum
 	Acceler_Z
 }Six_Axis_Value_Type;
 
+typedef enum
+{
+	Angle_X,
+    Angle_Y
+}Angle_Type;
+
+typedef struct
+{
+    float angle;
+    float bias;
+    float P[4];
+    float K[2];
+}Kalman_Data_Struct;
+
 Six_Axis_Sensor_State_Type Six_Axis_Sensor_Initial(void);
 void Show_Sensor_Msg(void);
 void Show_Sensor_RawData(void);
@@ -32,3 +46,6 @@ float Read_Axis_Value(Six_Axis_Value_Type axis);
 void Reset_Axis_Sensor_State(void);
 void Detect_Gyro_Harm_Posture(void);
 void Show_Agle_Displacement(void);
+void Get_Kalman_Data(void);
+float kalmanCalculate(float X_newAngle, float X_newRate,float Y_newAngle, float Y_newRate,int looptime);
+//float kalmanCalculate(float newAngle, float newRate,int looptime);

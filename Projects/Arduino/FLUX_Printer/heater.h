@@ -15,8 +15,7 @@
 #define PID_FUNCTIONAL_RANGE 10.0 //PID control from error=10,or output=Maxmum.
 #define PID_MAX	255.0
 #define PID_MIN	0.0
-#define max(x, y) (((x) > (y)) ? (x) : (y))
-#define min(x, y) (((x) < (y)) ? (x) : (y))
+
 #define constrain(amt,low,high) ((amt)<(low)?(low):((amt)>(high)?(high):(amt)))
 #define K1 0.95 // Smoothing factor within the PID
 #define K2 (1.0 - K1)

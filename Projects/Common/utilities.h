@@ -83,8 +83,14 @@ extern uint32_t G_tickValue;
 #define FLAG_TIMEOUT         ((uint32_t)0x1000)
 #define LONG_TIMEOUT         ((uint32_t)(10 * FLAG_TIMEOUT))
 
+#define PI 3.14159265
 
-
+#define Max(a, b)           (((a) > (b)) ?  (a) : (b))
+#define Min(a, b)           (((a) < (b)) ?  (a) : (b))
+#define max(a, b)   Max(a, b)
+#define min(a, b)   Min(a, b)
+#define Abs(a)              (((a) <  0 ) ? -(a) : (a))
+//#define abs(a)      Abs(a)
 /* exported typedef -------------------------------------------------------------------*/
 typedef enum { FAILED = 0, PASSED = !FAILED} TestStatus;
 
@@ -94,14 +100,9 @@ void delay_10us(uint32_t n_10us);
 uint8_t Get_Checksum(char *Data,uint16_t length);
 float ABS_F(float value);
 uint32_t millis(void);
-int arctan2(int y, int x);
+float arctan2(float y, float x);
 char * int2bin(int i);
 char *int2binStr(unsigned n, char *buf);
-//void DISCOVERY_Configuration(void);
-//void INT_EXTI_Config(void);
-//void INT1_EXTI_Config(void);
-//void INT2_EXTI_Config(void);
-//void PWM_Config(void);
 
 extern void(*delay)(uint32_t); //Func pointer to delay_ms
 

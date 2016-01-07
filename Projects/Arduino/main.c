@@ -191,20 +191,22 @@ int main(){
 			Detect_Laser_Power();
 		}
 		
+        //Show_Kalman_Degree();
+        
 		Time_Count=millis()-LastTime;
 		if(Time_Count >= 100){
 			LastTime=millis();
 			if(Show_Sensor_Data)
 				Show_Sensor_RawData();
 			if(ModuleMode==FLUX_ONE_EXTRUDER_MODULE){
-				//RTC_ADC_Value=Read_ADC_Value(NTC_Channel);	
+				RTC_ADC_Value=Read_ADC_Value(NTC_Channel);	
 				//printf("rtc value=%d\n",RTC_ADC_Value);
 			}
 		}
 			
 		if(!(Module_State & SENSOR_FAILURE)){
 			if(Module_State & SENSOR_CALIBRATION_FAILURE){
-				Six_Axis_Sensor_Calibration();
+				//Six_Axis_Sensor_Calibration();
 			}else{
 				//if(!(Module_State & NO_HELLO))
 					Detect_Gyro_Harm_Posture();

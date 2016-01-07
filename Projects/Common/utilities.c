@@ -65,8 +65,8 @@ uint8_t Get_Checksum(char *Data,uint16_t length){
 }
 
 float ABS_F(float value){
-	if(value<0.000001)
-		return value*(-1);
+	if(value<0.0)
+		return -value;
 	else
 		return value;
 }
@@ -75,23 +75,31 @@ uint32_t millis(void){
 	return Time_Count;
 }
 
-int arctan2(int y, int x) {                                    // http://www.dspguru.com/comp.dsp/tricks/alg/fxdatan2.htm
-   int coeff_1 = 128;                                          // angle in Quids (1024 Quids=360°) <<<<<<<<<<<<<<
-   int coeff_2 = 3*coeff_1;
-   float abs_y = ABS_F(y)+1e-10;
-   float r, angle;
+float arctan2(float y, float x)
+{
+  float t0, t1, t2, t3, t4;
 
-   if (x >= 0) {
-     r = (x - abs_y) / (x + abs_y);
-     angle = coeff_1 - coeff_1 * r;
-   }  else {
-     r = (x + abs_y) / (abs_y - x);
-     angle = coeff_2 - coeff_1 * r;
-   }
-   if (y < 0)
-	   return (int)(-angle);
-   else           
-	   return (int)(angle);
+  t3 = Abs(x);
+  t1 = Abs(y);
+  t0 = max(t3, t1);
+  t1 = min(t3, t1);
+  t3 = 1.0 / t0;
+  t3 = t1 * t3;
+
+  t4 = t3 * t3;
+  t0 =         - (float)(0.013480470);
+  t0 = t0 * t4 + (float)(0.057477314);
+  t0 = t0 * t4 - (float)(0.121239071);
+  t0 = t0 * t4 + (float)(0.195635925);
+  t0 = t0 * t4 - (float)(0.332994597);
+  t0 = t0 * t4 + (float)(0.999995630);
+  t3 = t0 * t3;
+
+  t3 = (Abs(y) > Abs(x)) ? (float)(1.570796327) - t3 : t3;
+  t3 = (x < 0) ?  (float)(3.141592654) - t3 : t3;
+  t3 = (y < 0) ? -t3 : t3;
+
+  return t3;
 }
 
 char * int2bin(int i)
