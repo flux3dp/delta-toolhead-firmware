@@ -190,8 +190,6 @@ int main(){
 		}else if(ModuleMode==FLUX_LASER_MODULE){
 			Detect_Laser_Power();
 		}
-		
-        //Show_Kalman_Degree();
         
 		Time_Count=millis()-LastTime;
 		if(Time_Count >= 100){
@@ -205,12 +203,7 @@ int main(){
 		}
 			
 		if(!(Module_State & SENSOR_FAILURE)){
-			if(Module_State & SENSOR_CALIBRATION_FAILURE){
-				//Six_Axis_Sensor_Calibration();
-			}else{
-				//if(!(Module_State & NO_HELLO))
-					Detect_Gyro_Harm_Posture();
-			}
+            Detect_Gyro_Harm_Posture();
 		}
 	}
 }

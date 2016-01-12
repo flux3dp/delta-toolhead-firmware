@@ -9,14 +9,14 @@
 #include <math.h>
 
 //for detecting harm postures
-static uint32_t Last_Detect_Time=0;
-static uint32_t Last_Detect_Posture_Time=0;
-static uint16_t Tilt_Trigger_Count=0;
-static uint16_t Shake_Trigger_Count=0;
-static uint32_t Trigger_Interval=0;
-static uint8_t Gyro_Value_Count=0;
-static uint8_t Tilt_Times=0;
-
+static float Kalman_Data[Data_Amount];
+static uint8_t Kalman_Data_Count=0;
+static bool Averge_First_Time=TRUE;
+static float Degree_Moving_Avg=0;
+float Degree_Now=0;
+static uint8_t Shake_Trigger_Count=0;
+static volatile uint32_t Shake_Last_Time=0;
+static float Predict_X_Error=0,Predict_Y_Error=0;
 //for Agle_Displacement
 //static float X_Angle=0.0,Y_Angle=0.0,Z_Angle=0.0;
 
@@ -35,9 +35,6 @@ extern volatile bool Debug_Mode;
 extern ModuleMode_Type ModuleMode;
 
 //for kalman filter
-float Q_angle  =  0.001; //0.001
-float Q_gyro   =  0.003;  //0.003
-float R_angle  =  0.03;  //0.03
 
 Kalman_Data_Struct Kal_X={0,0,{0,0,0,0},{0,0}};
 Kalman_Data_Struct Kal_Y={0,0,{0,0,0,0},{0,0}};
@@ -163,7 +160,7 @@ float Read_Axis_Value(Six_Axis_Value_Type axis){
 	float Axis_Value=0.0;
 
     
-	uint8_t Count=1;
+	uint8_t Count=2;
     for(i=0;i<Count;i++){
         switch(axis){
                 case Acceler_X:
@@ -212,7 +209,7 @@ void Six_Axis_Sensor_Calibration(void){
 	float X_Acc_Value=0,Y_Acc_Value=0,Z_Acc_Value=0;
 	float Z_Gyro_Value=0;
 	uint8_t i;
-	const uint8_t Count=2;
+	const uint8_t Count=1;
 	if(!Gyro_Calibration_Count)//count<=0
 		return;
 	for(i=0;i<Count;i++){
@@ -262,20 +259,21 @@ void Show_Sensor_Msg(void){
 
 void Show_Sensor_RawData(void){
 	float Gx,Gy,Gz;
-	
-	printf("%.4f\t\t",Read_Axis_Value(Acceler_X));          		
-	printf("%.4f\t\t",Read_Axis_Value(Acceler_Y));            
-	printf("%.4f\t\t",Read_Axis_Value(Acceler_Z));
-	
-	Gx=Read_Axis_Value(Gyro_X);
-	Gy=Read_Axis_Value(Gyro_Y);
-	Gz=Read_Axis_Value(Gyro_Z);
-	
-	printf("%.4f\t\t",Gx);
-	printf("%.4f\t\t",Gy);
-	printf("%.4f",Gz);
+//	
+//	printf("%.4f\t\t",Read_Axis_Value(Acceler_X));          		
+//	printf("%.4f\t\t",Read_Axis_Value(Acceler_Y));            
+//	printf("%.4f\t\t",Read_Axis_Value(Acceler_Z));
+//	
+//	Gx=Read_Axis_Value(Gyro_X);
+//	Gy=Read_Axis_Value(Gyro_Y);
+//	Gz=Read_Axis_Value(Gyro_Z);
+//	
+//	printf("%.4f\t\t",Gx);
+//	printf("%.4f\t\t",Gy);
+//	printf("%.4f\n",Gz);
 
-	printf("\n");
+    //printf("Avg=%.2f\tDx=%.2f\tDy=%.2f\tDF=%.2f\n",Degree_Moving_Avg,Kal_X.angle,Kal_Y.angle,Degree_Now);
+    printf("x%.2f y%.2f D%.2f\n",Kal_X.angle,Kal_Y.angle,Degree_Now);
 
 }
 
@@ -354,11 +352,72 @@ void Show_Sensor_RawData(void){
 
 //}
 
+
 void Detect_Gyro_Harm_Posture(void){
+    uint32_t Loop_Time=millis()-Kalman_Last_Time;
+    float Gyro_X_Value,Gyro_Y_Value,Gyro_Z_Value;
     
     //detect shake
+    if(Abs(Predict_X_Error)> 1.2 || Abs(Predict_Y_Error)> 1.2){
+        if(ModuleMode==FLUX_LASER_MODULE && !Debug_Mode)
+            Laser_Switch_Off();
+        
+        Shake_Trigger_Count++;
+
+        if(Shake_Trigger_Count>=2){
+            Set_Module_State(SHAKE);
+            Alarm_On();
+            Shake_Trigger_Count=0;
+            if(Debug_Mode){
+//                printf("Shake ");           
+//                printf("%.2f",Degree_Now);
+//                printf("\n");
+            }	
+        }
+        
+    }
+    if(millis()-Shake_Last_Time>511){
+        Shake_Last_Time=millis();
+        Shake_Trigger_Count=0;
+    }
+    if(Loop_Time>=Kalman_Loop_Time){
+        Kalman_Last_Time=millis();
+        Degree_Now=Get_Kalman_Data(Loop_Time);
+
+//        if(Degree_Now>=Shake_Alarm_Degree){
+//            if(ModuleMode==FLUX_LASER_MODULE && !Debug_Mode)
+//                Laser_Switch_Off();
+//            Set_Module_State(SHAKE);
+//            Alarm_On();
+//            if(Debug_Mode){
+//                printf("Shake\n");
+//            }
+//        }
+        //detect tilt
+        //caculate moving average degree
+//        Degree_Moving_Avg+=Data_Weight*Min(Degree_Now,Sample_Degree_Limit);
+//        if(Kalman_Data_Count>=Data_Amount){
+//            Kalman_Data_Count=0;
+//            Averge_First_Time=FALSE;
+//        }
+//        if(!Averge_First_Time){
+//            Degree_Moving_Avg-=Data_Weight*Kalman_Data[Kalman_Data_Count];
+//        }
+//        Kalman_Data[Kalman_Data_Count++]=Min(Degree_Now,Sample_Degree_Limit);
+//        
+        if(Degree_Now>=Tilt_Alarm_Degree){
+            if(ModuleMode==FLUX_LASER_MODULE && !Debug_Mode){
+                Laser_Switch_Off();
+            }
+            Alarm_On();
+            Set_Module_State(TILT);
+            if(Debug_Mode){
+                //printf("Tilt\n");
+            }
+        }
+        //printf("t=%d\n",millis()-Kalman_Last_Time);
+    }
     
-    //detect tilt
     
 }
 
@@ -367,20 +426,21 @@ void Reset_Axis_Sensor_State(void){
 	Reset_Module_State(TILT);
 }
 
-void Get_Kalman_Data(void){
-    uint32_t Loop_Time=millis()-Kalman_Last_Time;
+float Get_Kalman_Data(int looptime){
+    
     float ACC_angle;
     float GYRO_rate;
-    if(Loop_Time>25){
-        Kalman_Last_Time=millis();
-        ACC_angle=getAccAngle(Angle_X);
-        GYRO_rate=getGyroRate(Angle_X);
-        //printf("X=%.4lf  Y=%.4lf  Z=%.4lf\n",X_Angle,Y_Angle,Z_Angle);
-        //printf("y=\t%f\t%f\t%f\n",kalmanCalculate(ACC_angle,GYRO_rate,Loop_Time),ACC_angle,GYRO_rate);
-        kalmanCalculate(getAccAngle(Angle_X),getGyroRate(Angle_X),getAccAngle(Angle_Y),getGyroRate(Angle_Y),Loop_Time);
-        //kalmanCalculate(getAccAngle(Angle_X),getGyroRate(Angle_X),Loop_Time);
-        //printf("x%.2f y%.2f\n",Kal_X.angle,Kal_Y.angle);
-    }
+    
+    ACC_angle=getAccAngle(Angle_X);
+    GYRO_rate=getGyroRate(Angle_X);
+    //printf("X=%.4lf  Y=%.4lf  Z=%.4lf\n",X_Angle,Y_Angle,Z_Angle);
+    //printf("y=\t%f\t%f\t%f\n",kalmanCalculate(ACC_angle,GYRO_rate,Loop_Time),ACC_angle,GYRO_rate);
+    //kalmanCalculate(getAccAngle(Angle_X),getGyroRate(Angle_X),getAccAngle(Angle_Y),getGyroRate(Angle_Y),looptime);
+    kalmanCalculate(getAccAngle(Angle_X),0,getAccAngle(Angle_Y),0,looptime);
+    //kalmanCalculate(getAccAngle(Angle_X),getGyroRate(Angle_X),Loop_Time);
+    //printf("x%.2f y%.2f\n",Kal_X.angle,Kal_Y.angle);
+    //printf("x'=%.2f y'=%.2f\n",Predict_X_Error,Predict_Y_Error);
+    return sqrt(Kal_X.angle*Kal_X.angle+Kal_Y.angle*Kal_Y.angle);
     
 }
 
@@ -388,6 +448,7 @@ float kalmanCalculate(float X_newAngle, float X_newRate,float Y_newAngle, float 
 //float kalmanCalculate(float newAngle, float newRate,int looptime) {   
     float dt = (float)(looptime)/1000;
     float y,S;
+    
     //X angle
     Kal_X.angle += dt * (X_newRate - Kal_X.bias);
     Kal_X.P[0] +=  - dt * (Kal_X.P[2] + Kal_X.P[1]) + Q_angle * dt;
@@ -400,7 +461,8 @@ float kalmanCalculate(float X_newAngle, float X_newRate,float Y_newAngle, float 
     Kal_X.K[0] = Kal_X.P[0] / S;
     Kal_X.K[1] = Kal_X.P[2] / S;
 
-    Kal_X.angle +=  Kal_X.K[0] * y;
+    Predict_X_Error=Kal_X.K[0] * y;
+    Kal_X.angle +=  Predict_X_Error;
     Kal_X.bias  +=  Kal_X.K[1] * y;
     Kal_X.P[0] -= Kal_X.K[0] * Kal_X.P[0];
     Kal_X.P[1] -= Kal_X.K[0] * Kal_X.P[1];
@@ -408,18 +470,19 @@ float kalmanCalculate(float X_newAngle, float X_newRate,float Y_newAngle, float 
     Kal_X.P[3] -= Kal_X.K[1] * Kal_X.P[1];
     
     //Y angle
-    Kal_Y.angle += dt * (Y_newRate - Kal_Y.bias);
-    Kal_Y.P[0] +=  - dt * (Kal_Y.P[2] + Kal_Y.P[1]) + Q_angle * dt;
+    Kal_Y.angle += dt * (Y_newRate - Kal_Y.bias);//predict
+    Kal_Y.P[0] +=  - dt * (Kal_Y.P[2] + Kal_Y.P[1]) + Q_angle * dt;//predict P
     Kal_Y.P[1] +=  - dt * Kal_Y.P[3];
     Kal_Y.P[2] +=  - dt * Kal_Y.P[3];
     Kal_Y.P[3] +=  + Q_gyro * dt;
 
-    y = Y_newAngle - Kal_Y.angle;
+    y = Y_newAngle - Kal_Y.angle;//caculate error between predict x and measure
     S = Kal_Y.P[0] + R_angle;
-    Kal_Y.K[0] = Kal_Y.P[0] / S;
+    Kal_Y.K[0] = Kal_Y.P[0] / S;//kalman gain
     Kal_Y.K[1] = Kal_Y.P[2] / S;
 
-    Kal_Y.angle +=  Kal_Y.K[0] * y;
+    Predict_Y_Error=Kal_X.K[0] * y;
+    Kal_Y.angle +=  Kal_Y.K[0] * y;//update (correction)
     Kal_Y.bias  +=  Kal_Y.K[1] * y;
     Kal_Y.P[0] -= Kal_Y.K[0] * Kal_Y.P[0];
     Kal_Y.P[1] -= Kal_Y.K[0] * Kal_Y.P[1];
@@ -434,26 +497,26 @@ float getGyroRate(Angle_Type angle) {
     float Gyro_Y=Read_Axis_Value(Gyro_Y);   
     if(angle==Angle_X)  
         //return sqrt(Gyro_X*Gyro_X+Gyro_Y*Gyro_Y)/1000.0;
-        //return Read_Axis_Value(Gyro_X)/1000.0;  
-        return Read_Axis_Value(Gyro_Z)/1000.0;  
+        return Read_Axis_Value(Gyro_X)/1000.0;  
+        //return Read_Axis_Value(Gyro_Z)/1000.0;  
     if(angle==Angle_Y)
         //return sqrt(Gyro_X*Gyro_X+Gyro_Y*Gyro_Y)/1000.0;
-        //return Read_Axis_Value(Gyro_Y)/1000.0;  
-        return Read_Axis_Value(Gyro_Z)/1000.0;  
+        return Read_Axis_Value(Gyro_Y)/1000.0;  
+        //return Read_Axis_Value(Gyro_Z)/1000.0;  
 }
 
 double getAccAngle(Angle_Type angle) {
     float Acc_X=Read_Axis_Value(Acceler_X);
     float Acc_Y=Read_Axis_Value(Acceler_Y);
     float Acc_Z=Read_Axis_Value(Acceler_Z);
-    float Cos_Z=Acc_Z/1000;
+    float Cos_Z=Acc_Z/1000.0;
     if(angle==Angle_X)
-        //return acos(Cos_Z>1?1:Cos_Z)*180/PI; //in degree
+        //return acos(Cos_Z>1.0?2.0-Cos_Z:Cos_Z)*180.0/PI; //in degree
         //return atan2(sqrt(Acc_X*Acc_X+Acc_Y*Acc_Y),Acc_Z)*180/PI; //in degree
-        return atan2(Read_Axis_Value(Acceler_Y),Read_Axis_Value(Acceler_Z))*180/PI; //in degree
+        return atan2(Acc_Y,Acc_Z>1000.0?1000.0:Acc_Z)*180.0/PI; //in degree
     if(angle==Angle_Y)
-        //return acos(Cos_Z>1?1:Cos_Z)*180/PI; //in degree
+        //return acos(Cos_Z>1.0?2.0-Cos_Z:Cos_Z)*180.0/PI; //in degree
         //return atan2(sqrt(Acc_X*Acc_X+Acc_Y*Acc_Y),Acc_Z)*180/PI; //in degree
-        return atan2(-Read_Axis_Value(Acceler_X),Read_Axis_Value(Acceler_Z))*180/PI; //in degree
+        return atan2(Acc_X,Acc_Z>1000.0?1000.0:Acc_Z)*180.0/PI; //in degree
     
 }

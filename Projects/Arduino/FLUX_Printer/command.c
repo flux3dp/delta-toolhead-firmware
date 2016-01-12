@@ -58,7 +58,7 @@ extern void resetUartBuffer(Uart_BufferType *buff);
 
 void Module_State_Initial(void){
 	Set_Module_State(NO_HELLO);//set initial error= no hello
-	Set_Module_State(SENSOR_CALIBRATION_FAILURE);
+	//Set_Module_State(SENSOR_CALIBRATION_FAILURE);
 }
 
 void Set_Module_State(Module_State_Enum state){

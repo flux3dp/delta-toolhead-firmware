@@ -19,7 +19,8 @@ extern volatile uint16_t Fan1_Count;
 extern volatile uint16_t Fan2_Count;
 extern volatile bool Debug_Mode;
 extern volatile bool Show_Sensor_Data;
-
+extern Kalman_Data_Struct Kal_X,Kal_Y;
+extern float Degree_Now;
 void Extruder_One_Cmd_Handler(void){
 	char * Command_Str;
 		
@@ -45,6 +46,8 @@ void Extruder_One_Cmd_Handler(void){
 		Show_Sensor_Msg();
 		Show_Sensor_Data=TRUE;
 		sprintf(Response_Buffer,"1 OK ");
+	}else if(!strcmp(Command_Str, "SHOW1")){
+		sprintf(Response_Buffer,"1 OK x%.2f y%.2f D%.2f",Kal_X.angle,Kal_Y.angle,Degree_Now);
 	}else if(!strcmp(Command_Str, "PING")){
 		//uint8_t Err_Sum;
 		//error check
