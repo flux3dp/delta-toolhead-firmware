@@ -9,11 +9,11 @@
 
 #define Q_angle   0.001 //0.001
 #define Q_gyro    0.003 //0.003
-#define R_angle   20.0 //17.19 //0.03 bigger is more stable 
-#define Tilt_Alarm_Degree 6.5
+#define R_angle   0.1 //17.19 //0.03 bigger is more stable 
+#define Tilt_Alarm_Degree 6.0
 #define Shake_Alarm_Degree 8.0
 #define Average_Moving_Time 5000
-#define Kalman_Loop_Time 57
+#define Kalman_Loop_Time 13 //57
 #define Sample_Degree_Limit 12.0
 #define Data_Amount (int)(Average_Moving_Time/Kalman_Loop_Time)
 #define Data_Weight (float)1/(float)Data_Amount

@@ -192,7 +192,7 @@ int main(){
 		}
         
 		Time_Count=millis()-LastTime;
-		if(Time_Count >= 100){
+		if(Time_Count >= 60){
 			LastTime=millis();
 			if(Show_Sensor_Data)
 				Show_Sensor_RawData();

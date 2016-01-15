@@ -472,7 +472,7 @@ static bool Test_Six_Axis_Sensor_Calibration(void){
 				Z_Max=Z_Gyro_Value;
 			if(Z_Min>Z_Gyro_Value)
 				Z_Min=Z_Gyro_Value;
-			if(ABS_F(Z_Max-Z_Min)>200.0){
+			if(ABS_F(Z_Max-Z_Min)>400.0){
 				//printf("%.1f>%.1f\n",Z_Max,Z_Min);
 				return FALSE;
 			}

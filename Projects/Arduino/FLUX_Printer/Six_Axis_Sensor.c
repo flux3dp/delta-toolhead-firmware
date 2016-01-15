@@ -14,6 +14,7 @@ static uint8_t Kalman_Data_Count=0;
 static bool Averge_First_Time=TRUE;
 static float Degree_Moving_Avg=0;
 float Degree_Now=0;
+static uint8_t Tilt_Trigger_Count=0;
 static uint8_t Shake_Trigger_Count=0;
 static volatile uint32_t Shake_Last_Time=0;
 static float Predict_X_Error=0,Predict_Y_Error=0;
@@ -160,7 +161,7 @@ float Read_Axis_Value(Six_Axis_Value_Type axis){
 	float Axis_Value=0.0;
 
     
-	uint8_t Count=2;
+	uint8_t Count=1;
     for(i=0;i<Count;i++){
         switch(axis){
                 case Acceler_X:
@@ -278,142 +279,52 @@ void Show_Sensor_RawData(void){
 }
 
 
-//void Detect_Gyro_Harm_Posture(void){
-//	float Gyro_X_Value,Gyro_Y_Value,Gyro_Z_Value;
-
-//	Gyro_X_Value=Read_Axis_Value(Gyro_X);
-//	Gyro_Y_Value=Read_Axis_Value(Gyro_Y);
-//    Gyro_Z_Value=Read_Axis_Value(Gyro_Z);
-//	//detect shake
-//	if(ABS_F(Gyro_X_Value)>=Gyro_Shake_Alarm_Value || ABS_F(Gyro_Y_Value)>=Gyro_Shake_Alarm_Value || ABS_F(Gyro_Z_Value)>=Gyro_Shake_Alarm_Value){
-//		if(ModuleMode==FLUX_LASER_MODULE && !Debug_Mode)
-//			Laser_Switch_Off();
-//		
-//		Shake_Trigger_Count++;
-//        
-//        if(Debug_Mode){
-//            printf("S ");           
-//            printf("%.2f\t\t%.2f\t%.2f\t",Gyro_X_Value,Gyro_Y_Value,Gyro_Z_Value);
-//            printf("\n");
-//        }	
-//		if(Shake_Trigger_Count>=4){
-//			Set_Module_State(SHAKE);
-//			Alarm_On();
-//			Shake_Trigger_Count=0;
-//			if(Debug_Mode){
-//				printf("Shake ");           
-//				printf("%.2f\t\t%.2f\t%.2f\t",Gyro_X_Value,Gyro_Y_Value,Gyro_Z_Value);
-//				printf("\n");
-//			}	
-//		}
-//		
-//	}
-
-//	//detect tilt
-//    if(millis()-Last_Detect_Time>1000){
-//        if(Trigger_Interval>=1)
-//            Trigger_Interval++;
-//        
-//        if(Gyro_Z_Value >= Gyro_Tilt_Alarm_Value || Gyro_Z_Value <= -Gyro_Tilt_Alarm_Value){
-//            Trigger_Interval++;
-//            Tilt_Trigger_Count++;
-//        }
-//            
-//        if(Tilt_Trigger_Count>=3){
-//            if(ModuleMode==FLUX_LASER_MODULE && !Debug_Mode)
-//                Laser_Switch_Off();
-
-//            Trigger_Interval=0;
-//            Tilt_Trigger_Count=0;
-//            //Set_Module_State(TILT);
-//            Alarm_On();
-//            Tilt_Times++;
-//            if(Tilt_Times>=3){
-//                Set_Module_State(TILT);
-//                Tilt_Times=0;
-//            }
-//            Last_Detect_Time=millis();
-//            if(Debug_Mode){
-//                printf("Tilt ");           
-//                printf("%.2f",Gyro_Z_Value);
-//                printf("\n");
-//            }
-//        }
-//        
-//        if(millis()-Last_Detect_Posture_Time>500){
-//            Trigger_Interval=0;
-//            Tilt_Trigger_Count=0;
-//            Shake_Trigger_Count=0;
-//            Last_Detect_Posture_Time=millis();
-//        }
-//    }
-//    if(millis()-Last_Detect_Time>300000)//300s=5minutes
-//        Tilt_Times=0;
-
-//}
-
-
 void Detect_Gyro_Harm_Posture(void){
     uint32_t Loop_Time=millis()-Kalman_Last_Time;
     float Gyro_X_Value,Gyro_Y_Value,Gyro_Z_Value;
     
-    //detect shake
-    if(Abs(Predict_X_Error)> 1.2 || Abs(Predict_Y_Error)> 1.2){
-        if(ModuleMode==FLUX_LASER_MODULE && !Debug_Mode)
-            Laser_Switch_Off();
-        
-        Shake_Trigger_Count++;
-
-        if(Shake_Trigger_Count>=2){
-            Set_Module_State(SHAKE);
-            Alarm_On();
-            Shake_Trigger_Count=0;
-            if(Debug_Mode){
-//                printf("Shake ");           
-//                printf("%.2f",Degree_Now);
-//                printf("\n");
-            }	
-        }
-        
-    }
-    if(millis()-Shake_Last_Time>511){
-        Shake_Last_Time=millis();
-        Shake_Trigger_Count=0;
-    }
+    
     if(Loop_Time>=Kalman_Loop_Time){
         Kalman_Last_Time=millis();
         Degree_Now=Get_Kalman_Data(Loop_Time);
 
-//        if(Degree_Now>=Shake_Alarm_Degree){
-//            if(ModuleMode==FLUX_LASER_MODULE && !Debug_Mode)
-//                Laser_Switch_Off();
-//            Set_Module_State(SHAKE);
-//            Alarm_On();
-//            if(Debug_Mode){
-//                printf("Shake\n");
-//            }
-//        }
-        //detect tilt
-        //caculate moving average degree
-//        Degree_Moving_Avg+=Data_Weight*Min(Degree_Now,Sample_Degree_Limit);
-//        if(Kalman_Data_Count>=Data_Amount){
-//            Kalman_Data_Count=0;
-//            Averge_First_Time=FALSE;
-//        }
-//        if(!Averge_First_Time){
-//            Degree_Moving_Avg-=Data_Weight*Kalman_Data[Kalman_Data_Count];
-//        }
-//        Kalman_Data[Kalman_Data_Count++]=Min(Degree_Now,Sample_Degree_Limit);
-//        
-        if(Degree_Now>=Tilt_Alarm_Degree){
-            if(ModuleMode==FLUX_LASER_MODULE && !Debug_Mode){
+            //detect shake
+        if(Abs(Predict_X_Error)> 4.0 || Abs(Predict_Y_Error)> 4.0){
+            if(ModuleMode==FLUX_LASER_MODULE && !Debug_Mode)
                 Laser_Switch_Off();
+            
+            Shake_Trigger_Count++;
+
+//            if(Debug_Mode){
+//                printf("ERR=");           
+//                printf("%.2f\t%.2f",Predict_X_Error,Predict_Y_Error);
+//                printf("\n");
+//            }	
+            if(Shake_Trigger_Count>=3){
+                Set_Module_State(SHAKE);
+                Alarm_On();
+                Shake_Trigger_Count=0;
             }
-            Alarm_On();
-            Set_Module_State(TILT);
-            if(Debug_Mode){
-                //printf("Tilt\n");
+            
+        }
+        if(millis()-Shake_Last_Time>511){
+            Shake_Last_Time=millis();
+            Shake_Trigger_Count=0;
+        }
+        
+        //detect tilt 
+        if(Degree_Now>=Tilt_Alarm_Degree && Abs(Predict_X_Error)< 0.7 && Abs(Predict_Y_Error)< 0.7){
+            Tilt_Trigger_Count++;
+            if(Tilt_Trigger_Count>=14){
+                if(ModuleMode==FLUX_LASER_MODULE && !Debug_Mode){
+                    Laser_Switch_Off();
+                }
+                //Alarm_On();
+                Set_Module_State(TILT);
+                Tilt_Trigger_Count=0;
             }
+        }else{
+            Tilt_Trigger_Count=0;
         }
         //printf("t=%d\n",millis()-Kalman_Last_Time);
     }
@@ -435,8 +346,8 @@ float Get_Kalman_Data(int looptime){
     GYRO_rate=getGyroRate(Angle_X);
     //printf("X=%.4lf  Y=%.4lf  Z=%.4lf\n",X_Angle,Y_Angle,Z_Angle);
     //printf("y=\t%f\t%f\t%f\n",kalmanCalculate(ACC_angle,GYRO_rate,Loop_Time),ACC_angle,GYRO_rate);
-    //kalmanCalculate(getAccAngle(Angle_X),getGyroRate(Angle_X),getAccAngle(Angle_Y),getGyroRate(Angle_Y),looptime);
-    kalmanCalculate(getAccAngle(Angle_X),0,getAccAngle(Angle_Y),0,looptime);
+    kalmanCalculate(getAccAngle(Angle_X),getGyroRate(Angle_X),getAccAngle(Angle_Y),getGyroRate(Angle_Y),looptime);
+    //kalmanCalculate(getAccAngle(Angle_X),0,getAccAngle(Angle_Y),0,looptime);
     //kalmanCalculate(getAccAngle(Angle_X),getGyroRate(Angle_X),Loop_Time);
     //printf("x%.2f y%.2f\n",Kal_X.angle,Kal_Y.angle);
     //printf("x'=%.2f y'=%.2f\n",Predict_X_Error,Predict_Y_Error);
@@ -510,6 +421,8 @@ double getAccAngle(Angle_Type angle) {
     float Acc_Y=Read_Axis_Value(Acceler_Y);
     float Acc_Z=Read_Axis_Value(Acceler_Z);
     float Cos_Z=Acc_Z/1000.0;
+    Acc_Y=Acc_Y>0.0?Min(Acc_Y,150):Max(Acc_Y,-150);
+    Acc_X=Acc_X>0.0?Min(Acc_X,150):Max(Acc_X,-150);
     if(angle==Angle_X)
         //return acos(Cos_Z>1.0?2.0-Cos_Z:Cos_Z)*180.0/PI; //in degree
         //return atan2(sqrt(Acc_X*Acc_X+Acc_Y*Acc_Y),Acc_Z)*180/PI; //in degree
@@ -517,6 +430,6 @@ double getAccAngle(Angle_Type angle) {
     if(angle==Angle_Y)
         //return acos(Cos_Z>1.0?2.0-Cos_Z:Cos_Z)*180.0/PI; //in degree
         //return atan2(sqrt(Acc_X*Acc_X+Acc_Y*Acc_Y),Acc_Z)*180/PI; //in degree
-        return atan2(Acc_X,Acc_Z>1000.0?1000.0:Acc_Z)*180.0/PI; //in degree
+        return atan2(-Acc_X,Acc_Z>1000.0?1000.0:Acc_Z)*180.0/PI; //in degree
     
 }
