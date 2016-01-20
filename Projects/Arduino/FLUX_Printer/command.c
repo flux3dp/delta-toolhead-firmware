@@ -342,7 +342,7 @@ static void Test_Extruder_One(void){
 	Test_Result+=Test_Alarm_IO();
 	Test_Result+=Test_Sensor_RW();
 	Test_Result+=Test_Acceler_Range();
-	Test_Result+=Test_Gyro_Range();
+	Test_Result+=8;//Test_Gyro_Range();
 	
 	Test_Result+=Test_Heater_Output();
 	//Test_Result+=Test_Fan1_IO();
@@ -363,7 +363,7 @@ static void Test_Laser(void){
 	Test_Result+=Test_Alarm_IO();
 	Test_Result+=Test_Sensor_RW();
 	Test_Result+=Test_Acceler_Range();
-	Test_Result+=Test_Gyro_Range();
+	Test_Result+=8;//Test_Gyro_Range();
 	Test_Result+=Test_Laser_PWM_Switch();
 	Test_Result+=Test_Laser_Power_Switch();
 	

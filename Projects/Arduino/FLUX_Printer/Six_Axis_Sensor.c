@@ -15,6 +15,7 @@ static bool Averge_First_Time=TRUE;
 static float Degree_Moving_Avg=0;
 float Degree_Now=0;
 static uint8_t Tilt_Trigger_Count=0;
+static volatile uint32_t Tilt_Last_Time=0;
 static uint8_t Shake_Trigger_Count=0;
 static volatile uint32_t Shake_Last_Time=0;
 static float Predict_X_Error=0,Predict_Y_Error=0;
@@ -313,18 +314,26 @@ void Detect_Gyro_Harm_Posture(void){
         }
         
         //detect tilt 
-        if(Degree_Now>=Tilt_Alarm_Degree && Abs(Predict_X_Error)< 0.7 && Abs(Predict_Y_Error)< 0.7){
-            Tilt_Trigger_Count++;
-            if(Tilt_Trigger_Count>=14){
-                if(ModuleMode==FLUX_LASER_MODULE && !Debug_Mode){
-                    Laser_Switch_Off();
+        if(Abs(Predict_X_Error)> 1.0 || Abs(Predict_Y_Error)> 1.0){
+            Tilt_Last_Time=millis();
+//            if(Debug_Mode){
+//                printf("%.2f\t%.2f",Predict_X_Error,Predict_Y_Error);
+//            }
+        }
+        if(millis()-Tilt_Last_Time>600){
+            if(Degree_Now>=Tilt_Alarm_Degree){
+                Tilt_Trigger_Count++;
+                if(Tilt_Trigger_Count>=14){
+                    if(ModuleMode==FLUX_LASER_MODULE && !Debug_Mode){
+                        Laser_Switch_Off();
+                    }
+                    //Alarm_On();
+                    Set_Module_State(TILT);
+                    Tilt_Trigger_Count=0;
                 }
-                //Alarm_On();
-                Set_Module_State(TILT);
+            }else{
                 Tilt_Trigger_Count=0;
             }
-        }else{
-            Tilt_Trigger_Count=0;
         }
         //printf("t=%d\n",millis()-Kalman_Last_Time);
     }
