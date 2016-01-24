@@ -24,3 +24,5 @@ void IWDG_Configuration(void);
 void Alarm_IO_Config(void);
 void Self_Test_IO_Config(void);
 //void Thermistor_ADC_Config();
+void Interlock_IO_Config(void);
+

@@ -2,12 +2,14 @@
 #include "stm32f0xx.h"
 #include "utilities.h"
 #include "command.h"
+#include <stdio.h>
 volatile uint16_t Fan1_Count=0;
 volatile uint16_t Fan2_Count=0;
 volatile uint8_t Inhalation_PWM=0;
 static volatile bool Fan_Maintain_Switch=Fan2_Off;
 static volatile uint32_t Fan_Switch_Start_Time=0;
 static volatile uint32_t Fan_Check_Last_Time=0;
+bool Fan_Retry_Timeout=FALSE;
 extern uint32_t Fan_Start;
 void Set_Exhalation_Fan_PWM(uint8_t PWM){
 	uint16_t Pwm_Value;
@@ -29,7 +31,7 @@ void Set_Inhalation_Fan_PWM(uint8_t PWM){
 }
 
 uint8_t Read_Inhalation_Fan_PWM(void){
-    if(millis()-Fan_Start<Fan_Revolution_Time_Limit)
+    if(millis()-Fan_Start<Fan_Revolution_Time_Limit && !Fan_Retry_Timeout)
         return Inhalation_PWM;
 	Fan1_Count=0;
 	Fan2_Count=0;
@@ -66,11 +68,16 @@ void Fan_Management(void){
             }
         }
     }else{
-        Set_Inhalation_Fan_PWM(Inhalation_PWM);
+        
         if(millis()-Fan_Check_Last_Time >820){
+            Fan_Retry_Timeout=TRUE;
             Fan_Check_Last_Time=millis();
             if(Inhalation_PWM!=Read_Inhalation_Fan_PWM()){
                 Fan_Start=millis();
+                //printf("fan failed\n");
+            }else{
+                Set_Inhalation_Fan_PWM(Inhalation_PWM);
+                Fan_Start=0;
             }
         }
     }
