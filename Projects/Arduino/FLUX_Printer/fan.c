@@ -9,8 +9,8 @@ volatile uint8_t Inhalation_PWM=0;
 static volatile bool Fan_Maintain_Switch=Fan2_Off;
 static volatile uint32_t Fan_Switch_Start_Time=0;
 static volatile uint32_t Fan_Check_Last_Time=0;
-bool Fan_Retry_Timeout=FALSE;
-extern uint32_t Fan_Start;
+static volatile uint32_t Fan_Revolution_Start=0;
+uint32_t Fan_Mask_Start=0;
 void Set_Exhalation_Fan_PWM(uint8_t PWM){
 	uint16_t Pwm_Value;
 	Pwm_Value=(255 - PWM)*257;
@@ -26,17 +26,16 @@ void Set_Inhalation_Fan_PWM(uint8_t PWM){
 		PWM=Fan_Lowest_PWM;
 	Pwm_Value=(255 - PWM)*257;
 	TIM17->CCR1 = Pwm_Value;
-    Fan_Retry_Timeout=FALSE;
-//    if(PWM!=0)
-//        Fan_Start=millis();
+}
+void Set_Inhalation_Fan_Mask_PWM(uint8_t PWM){
+	Set_Inhalation_Fan_PWM(PWM);
+    Fan_Mask_Start=millis();
 }
 
 uint8_t Read_Inhalation_Fan_PWM(void){
-    if(millis()-Fan_Start<Fan_Revolution_Time_Limit && !Fan_Retry_Timeout)
-        return Inhalation_PWM;
 	Fan1_Count=0;
 	Fan2_Count=0;
-	delay_ms(20);
+	delay_ms(10);
 	if(Fan1_Count>=1 && Fan2_Count>=1){
 		return Inhalation_PWM;
 	}else{
@@ -44,11 +43,19 @@ uint8_t Read_Inhalation_Fan_PWM(void){
 	}
 	
 }
-
+uint8_t Read_Inhalation_Fan_Mask_PWM(void){
+    if(millis()-Fan_Mask_Start<Fan_Mask_Time)
+        return Inhalation_PWM;
+	return Read_Inhalation_Fan_PWM();
+	
+}
 
 bool Is_Inhalation_Fan_Failed(void){
-    
-	if(Read_Inhalation_Fan_PWM()!=Inhalation_PWM && Fan_Retry_Timeout)
+    if(millis()-Fan_Mask_Start<Fan_Mask_Time){
+        Reset_Module_State(FAN_FAILURE);
+		return FALSE;
+    }
+	if(Read_Inhalation_Fan_PWM()!=Inhalation_PWM)
 		return TRUE;
 	else{
 		Reset_Module_State(FAN_FAILURE);
@@ -58,15 +65,16 @@ bool Is_Inhalation_Fan_Failed(void){
 
 void Fan_Management(void){
     
-    if(millis()-Fan_Start < Fan_Revolution_Time_Limit-1250){
-        
+    if(millis()-Fan_Check_Last_Time >Fan_Regular_Check_Time){
+            Fan_Check_Last_Time=millis();
+            if(Inhalation_PWM!=Read_Inhalation_Fan_PWM()){
+                Fan_Revolution_Start=millis();
+                //printf("fan failed\n");
+            }
+    }
+    if(millis()-Fan_Revolution_Start<700){
         if(millis()-Fan_Switch_Start_Time >80){
             Fan_Switch_Start_Time=millis();
-            if(millis()-Fan_Start+80>=Fan_Revolution_Time_Limit-1250){
-                Fan_Maintain_Switch=TRUE;
-                TIM17->CCR1=0;
-                return;
-            }
             if(!Fan_Maintain_Switch){
                 Fan_Maintain_Switch=TRUE;
                 TIM17->CCR1=0;
@@ -76,16 +84,8 @@ void Fan_Management(void){
             }
         }
     }else{
+        Fan_Maintain_Switch=TRUE;
         Set_Inhalation_Fan_PWM(Inhalation_PWM);
-        Fan_Start=0;
-        if(millis()-Fan_Check_Last_Time >950){
-            Fan_Check_Last_Time=millis();
-            Fan_Retry_Timeout=TRUE;
-            if(Inhalation_PWM!=Read_Inhalation_Fan_PWM()){
-                Fan_Start=millis();
-                //printf("fan failed\n");
-            }
-        }
     }
 }
 

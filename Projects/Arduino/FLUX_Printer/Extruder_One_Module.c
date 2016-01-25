@@ -11,7 +11,6 @@
 #include "Six_Axis_Sensor.h"
 #include "fan.h"
 
-uint32_t Fan_Start=0;
 extern float Target_Temperature;
 //extern Module_State_Type Module_State;
 extern volatile uint32_t Module_State;
@@ -60,7 +59,7 @@ void Extruder_One_Cmd_Handler(void){
 			sprintf(Response_Buffer,"%s%s",Response_Buffer,"TT:NAN ");
 		else
 			sprintf(Response_Buffer,"%sTT:%.1lf ",Response_Buffer,Target_Temperature);
-		sprintf(Response_Buffer,"%sFA:%d ",Response_Buffer,Read_Inhalation_Fan_PWM());
+		sprintf(Response_Buffer,"%sFA:%d ",Response_Buffer,Read_Inhalation_Fan_Mask_PWM());
 		
 		//reset sensor state
 		Reset_Axis_Sensor_State();
@@ -91,7 +90,7 @@ void Extruder_One_Cmd_Handler(void){
 				if(Module_State & NO_HELLO){
 					sprintf(Response_Buffer,"1 ER COMMAND_CANNOT_BE_PROCESSSED ");
 				}else if(Int_Temp >= 0 && Int_Temp <= 255){
-					Set_Inhalation_Fan_PWM(Int_Temp);
+					Set_Inhalation_Fan_Mask_PWM(Int_Temp);
 					sprintf(Response_Buffer,"1 OK FAN ");
 
                     
