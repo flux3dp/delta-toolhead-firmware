@@ -26,8 +26,9 @@ void Set_Inhalation_Fan_PWM(uint8_t PWM){
 		PWM=Fan_Lowest_PWM;
 	Pwm_Value=(255 - PWM)*257;
 	TIM17->CCR1 = Pwm_Value;
-    if(PWM!=0)
-        Fan_Start=millis();
+    Fan_Retry_Timeout=FALSE;
+//    if(PWM!=0)
+//        Fan_Start=millis();
 }
 
 uint8_t Read_Inhalation_Fan_PWM(void){
@@ -35,7 +36,7 @@ uint8_t Read_Inhalation_Fan_PWM(void){
         return Inhalation_PWM;
 	Fan1_Count=0;
 	Fan2_Count=0;
-	delay_ms(10);
+	delay_ms(20);
 	if(Fan1_Count>=1 && Fan2_Count>=1){
 		return Inhalation_PWM;
 	}else{
@@ -46,7 +47,8 @@ uint8_t Read_Inhalation_Fan_PWM(void){
 
 
 bool Is_Inhalation_Fan_Failed(void){
-	if(Read_Inhalation_Fan_PWM()!=Inhalation_PWM)
+    
+	if(Read_Inhalation_Fan_PWM()!=Inhalation_PWM && Fan_Retry_Timeout)
 		return TRUE;
 	else{
 		Reset_Module_State(FAN_FAILURE);
@@ -56,9 +58,15 @@ bool Is_Inhalation_Fan_Failed(void){
 
 void Fan_Management(void){
     
-    if(millis()-Fan_Start < Fan_Revolution_Time_Limit-50){
+    if(millis()-Fan_Start < Fan_Revolution_Time_Limit-1250){
+        
         if(millis()-Fan_Switch_Start_Time >80){
             Fan_Switch_Start_Time=millis();
+            if(millis()-Fan_Start+80>=Fan_Revolution_Time_Limit-1250){
+                Fan_Maintain_Switch=TRUE;
+                TIM17->CCR1=0;
+                return;
+            }
             if(!Fan_Maintain_Switch){
                 Fan_Maintain_Switch=TRUE;
                 TIM17->CCR1=0;
@@ -68,16 +76,14 @@ void Fan_Management(void){
             }
         }
     }else{
-        
-        if(millis()-Fan_Check_Last_Time >820){
-            Fan_Retry_Timeout=TRUE;
+        Set_Inhalation_Fan_PWM(Inhalation_PWM);
+        Fan_Start=0;
+        if(millis()-Fan_Check_Last_Time >950){
             Fan_Check_Last_Time=millis();
+            Fan_Retry_Timeout=TRUE;
             if(Inhalation_PWM!=Read_Inhalation_Fan_PWM()){
                 Fan_Start=millis();
                 //printf("fan failed\n");
-            }else{
-                Set_Inhalation_Fan_PWM(Inhalation_PWM);
-                Fan_Start=0;
             }
         }
     }
