@@ -1,5 +1,5 @@
-#define Firmware_Version	2.0125
-#define Firmware_Name		"OHMAMA"
+#define Firmware_Version	2.0126
+#define Firmware_Name		"EXCALIBUR"
 #define STM32F0_UUID ((uint32_t *)0x1FFFF7AC)
 #define Enable_IWDG 1
 #define Enable_Debug_Msg 0
