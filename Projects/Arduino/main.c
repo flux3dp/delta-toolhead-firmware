@@ -3,12 +3,12 @@
   * @file    PrinterHead_v3/main.c 
   * @author  Flux Firmware Team
   * @version V1.0.0
-  * @date    20-October-2015
+  * @date    29-January-2016
   * @brief   
   ******************************************************************************
   * @attention
   *
-  * <h2><center>&copy; COPYRIGHT 2015 Flux</center></h2>
+  * <h2><center>&copy; COPYRIGHT 2016 Flux</center></h2>
   *
   *
   ******************************************************************************
@@ -18,7 +18,7 @@
 #include "stm32f0xx_conf.h"
 
 #ifdef Function_Test
-	#include "LaserModule.h" //testing
+	#include "LaserModule.h"
 #endif
 
 volatile uint32_t CmdTimeout_count=0;
