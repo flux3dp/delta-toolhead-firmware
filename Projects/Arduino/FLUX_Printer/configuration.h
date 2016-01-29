@@ -13,6 +13,7 @@ void Module_Recognition(void);
 void ADC_Config(void);
 void Uart1_Config(void);
 void Uart1_ISR_Enable(void);
+void Uart1_ISR_Disable(void);
 void Fan_Inhalation_RPM_IO_Config(void);
 void Fan_Exhalation_Config(void);
 void Fan_Inhalation_Config(void);

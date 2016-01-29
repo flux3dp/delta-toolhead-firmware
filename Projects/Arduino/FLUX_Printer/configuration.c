@@ -145,6 +145,13 @@ void Uart1_ISR_Enable(void){
 	USART_Cmd(USART1,ENABLE);
 }
 
+void Uart1_ISR_Disable(void){
+
+	USART_ITConfig(USART1, USART_IT_RXNE, DISABLE);
+
+	USART_Cmd(USART1,DISABLE);
+}
+
 //PID control timer.Default update period:20ms
 void Gerneral_Timer_Config(void){
 	uint16_t PrescalerValue;

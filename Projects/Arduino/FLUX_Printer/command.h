@@ -7,6 +7,8 @@
 #define FLASH_USER_START_ADDR   ((uint32_t)0x08000800)   /* Start @ of user Flash area */
 #define FLASH_USER_END_ADDR     ((uint32_t)0x0803FC00)   /* End @ of user Flash area */
 
+#define Using_TimeA_Addr        ((uint32_t)0x0803F400)
+#define Using_TimeB_Addr        ((uint32_t)0x0803F800)
 #define Extruder_Cmd_Timeout 300000
 #define Laser_Cmd_Timeout 2000
 #define UUID STM32F0_UUID
@@ -72,4 +74,7 @@ bool Read_Self_Test_IO(void);
 
 void Self_Test(void);
 
+void Using_Time_Record(void);
+
+uint32_t Read_Using_Time(void);
 

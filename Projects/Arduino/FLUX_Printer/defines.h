@@ -1,4 +1,4 @@
-#define Firmware_Version	2.0126
+#define Firmware_Version	2.0128
 #define Firmware_Name		"EXCALIBUR"
 #define STM32F0_UUID ((uint32_t *)0x1FFFF7AC)
 #define Enable_IWDG 1

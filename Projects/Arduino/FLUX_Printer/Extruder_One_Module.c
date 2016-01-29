@@ -100,6 +100,8 @@ void Extruder_One_Cmd_Handler(void){
 		}else{
 			sprintf(Response_Buffer,"1 ER UNKNOW_COMMAND ");
 		}
+	}else if(!strcmp(Command_Str, "USING_TIME")){
+		sprintf(Response_Buffer,"1 OK %u ",Read_Using_Time());
 	}else{
 		sprintf(Response_Buffer,"1 ER UNKNOW_COMMAND ");
 	}
