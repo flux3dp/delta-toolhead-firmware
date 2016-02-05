@@ -10,7 +10,7 @@
 #include "utilities.h"
 #include "Six_Axis_Sensor.h"
 #include "fan.h"
-
+#include "Using_Time.h"
 extern float Target_Temperature;
 //extern Module_State_Type Module_State;
 extern volatile uint32_t Module_State;
@@ -34,12 +34,12 @@ void Extruder_One_Cmd_Handler(void){
 		Debug_Mode=FALSE;
 		Show_Sensor_Data=FALSE;
 		Reset_Module_State(NO_HELLO);
-		sprintf(Response_Buffer,"1 OK HELLO TYPE:EXTRUDER ID:%08X%08X%08X VENDOR:%s FIRMWARE:%s VERSION:%s EXTRUDER:1 MAX_TEMPERATURE:%.1lf ",UUID[2],UUID[1],UUID[0],Vender,Firmware_Name,Firmware_Version,Max_Temperature);
+		sprintf(Response_Buffer,"1 OK HELLO TYPE:EXTRUDER ID:%08X%08X%08X VENDOR:%s FIRMWARE:%s VERSION:%s EXTRUDER:1 MAX_TEMPERATURE:%.1lf USED:%u ",UUID[2],UUID[1],UUID[0],Vender,Firmware_Name,Firmware_Version,Max_Temperature,Read_Using_Time());
 
 	}else if(!strcmp(Command_Str, "DEBUG")){
 		Debug_Mode=TRUE;
 		Reset_Module_State(NO_HELLO);
-		sprintf(Response_Buffer,"1 OK HELLO TYPE:EXTRUDER ID:%08X%08X%08X VENDOR:%s FIRMWARE:%s VERSION:%s EXTRUDER:1 MAX_TEMPERATURE:%.1lf ",UUID[2],UUID[1],UUID[0],Vender,Firmware_Name,Firmware_Version,Max_Temperature);
+		sprintf(Response_Buffer,"1 OK HELLO TYPE:EXTRUDER ID:%08X%08X%08X VENDOR:%s FIRMWARE:%s VERSION:%s EXTRUDER:1 MAX_TEMPERATURE:%.1lf USED:%u ",UUID[2],UUID[1],UUID[0],Vender,Firmware_Name,Firmware_Version,Max_Temperature,Read_Using_Time());
 
 	}else if(!strcmp(Command_Str, "SHOW")){
 		Show_Sensor_Msg();
@@ -102,6 +102,8 @@ void Extruder_One_Cmd_Handler(void){
 		}
 	}else if(!strcmp(Command_Str, "USING_TIME")){
 		sprintf(Response_Buffer,"1 OK %u ",Read_Using_Time());
+	}else if(!strcmp(Command_Str, "DETAIL")){
+		sprintf(Response_Buffer,"1 OK DATE:%s ",Firmware_Date);
 	}else{
 		sprintf(Response_Buffer,"1 ER UNKNOW_COMMAND ");
 	}

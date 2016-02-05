@@ -1,5 +1,6 @@
-#define Firmware_Version	"1.0.0"
+#define Firmware_Version	"1.0.3"
 #define Firmware_Name		"EXCALIBUR"
+#define Firmware_Date       "20160202"
 #define STM32F0_UUID ((uint32_t *)0x1FFFF7AC)
 #define Enable_IWDG 1
 #define Enable_Debug_Msg 0
@@ -14,3 +15,17 @@ typedef enum
 	FLUX_LASER_MODULE,
 	Unknow
 }ModuleMode_Type;
+
+/*
+Version history
+1.0.0   20160129    Add extruder one using time
+1.0.1   20160129    Fix flash using time bug(shut down when flash and uart interrup at the same time)
+1.0.2   20160201    Flash using time a whole page
+1.0.3   20160202    Add measure laser power down function
+
+
+
+
+
+
+*/

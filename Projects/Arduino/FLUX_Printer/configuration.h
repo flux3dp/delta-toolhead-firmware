@@ -26,4 +26,6 @@ void Alarm_IO_Config(void);
 void Self_Test_IO_Config(void);
 //void Thermistor_ADC_Config();
 void Interlock_IO_Config(void);
+void Interlock_Exti_Config(void);
+void Interlock_Exti_Break(void);
 

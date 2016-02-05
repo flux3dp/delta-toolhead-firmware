@@ -26,7 +26,6 @@ extern Uart_BufferType CmdBuffer;
 extern ModuleMode_Type ModuleMode;
 extern volatile uint32_t CmdTimeout_count;
 
-static volatile uint32_t Using_Last_Time=0;
 
 void ToLowerCase(Uart_BufferType *buff);
 void ToUpperCase(Uart_BufferType *buff);
@@ -167,7 +166,7 @@ float Read_Focal_Length(void){
 	FL_Data=*(__IO uint32_t *)FLASH_USER_END_ADDR ;
 	Checksum=*(__IO uint32_t *)(FLASH_USER_END_ADDR+4);
 	if((FL_Data^0x12345678) == Checksum){
-		return (float)FL_Data/100;
+		return (float)FL_Data/100.0;
 	}else{
 		return 0.0;
 	}
@@ -177,13 +176,14 @@ float Read_Focal_Length(void){
 bool Write_Focal_Length(float Focal_Length){
 	uint32_t Data_Verify;
 	uint32_t Data_Trans=(int32_t)(Focal_Length*100);
+    Uart1_ISR_Disable();
 	FLASH_Unlock();
 	FLASH_ClearFlag(FLASH_FLAG_BSY | FLASH_FLAG_EOP | FLASH_FLAG_PGERR | FLASH_FLAG_WRPERR); 
 	FLASH_ErasePage(FLASH_USER_END_ADDR);
 	FLASH_ProgramWord(FLASH_USER_END_ADDR , Data_Trans);
 	FLASH_ProgramWord(FLASH_USER_END_ADDR+4	, (Data_Trans^0x12345678));
 	FLASH_Lock();
-
+    Uart1_ISR_Enable();
 	Data_Verify = *(__IO uint32_t *)FLASH_USER_END_ADDR ;
 	if(Data_Verify == Data_Trans)
 	{	
@@ -195,78 +195,7 @@ bool Write_Focal_Length(float Focal_Length){
 	}
 }
 
-bool Write_Using_Time(uint32_t Addr,uint32_t data){
-    uint32_t Data_Verify;
-	uint32_t Data_Trans=data;
-    Uart1_ISR_Disable();//Uart interrupt will cause a shotdown when writing flash
-	FLASH_Unlock();
-	FLASH_ClearFlag(FLASH_FLAG_BSY | FLASH_FLAG_EOP | FLASH_FLAG_PGERR | FLASH_FLAG_WRPERR); 
-	FLASH_ErasePage(Addr);
-	FLASH_ProgramWord(Addr , Data_Trans);
-	FLASH_ProgramWord(Addr+4	, (Data_Trans^0x12345678));
-	FLASH_Lock();
-    Uart1_ISR_Enable();
-	Data_Verify = *(__IO uint32_t *)Addr ;
-	if(Data_Verify == Data_Trans)
-	{	
-		return TRUE;
-	}
-	else
-	{
-		return FALSE;
-	}
-}
-bool Check_Using_Time_Validation(uint32_t Addr){
-    int32_t FL_Data,Checksum;
-	FL_Data=*(__IO uint32_t *)Addr ;
-	Checksum=*(__IO uint32_t *)(Addr+4);
-	if((FL_Data^0x12345678) == Checksum){
-		return TRUE;
-	}else{
-		return FALSE;
-	}
-}
-uint32_t Read_Rom_Data(uint32_t Addr){
-	return *(__IO uint32_t *)Addr;
-}
-bool Add_Using_Time(void){
-    //Synchronize
-    if(Check_Using_Time_Validation(Using_TimeA_Addr)){
-        if(!Check_Using_Time_Validation(Using_TimeB_Addr)){
-            Write_Using_Time(Using_TimeB_Addr,Read_Rom_Data(Using_TimeA_Addr));
-        }
-    }else{
-        if(Check_Using_Time_Validation(Using_TimeB_Addr)){
-            Write_Using_Time(Using_TimeA_Addr,Read_Rom_Data(Using_TimeB_Addr));
-        }else{
-            Write_Using_Time(Using_TimeA_Addr,0);
-            Write_Using_Time(Using_TimeB_Addr,0);
-        }
-    }
-    Write_Using_Time(Using_TimeA_Addr,Read_Rom_Data(Using_TimeA_Addr)+5);
-    Write_Using_Time(Using_TimeB_Addr,Read_Rom_Data(Using_TimeA_Addr));
-}
 
-void Using_Time_Record(void){
-    uint32_t interval=millis()-Using_Last_Time;
-    if(interval > 300000){//5 minutes
-        Using_Last_Time=millis();
-        if(Read_Temperature()>50.0)
-            Add_Using_Time();
-    }
-}
-
-uint32_t Read_Using_Time(void){//read 有時會當掉 我猜可能寫入時間太長 來不及handle commands
-    //Synchronize
-    if(Check_Using_Time_Validation(Using_TimeA_Addr)){
-        return Read_Rom_Data(Using_TimeA_Addr);
-    }else if(Check_Using_Time_Validation(Using_TimeB_Addr)){
-        return Read_Rom_Data(Using_TimeB_Addr);
-    }else{
-        return 0;
-    }
-    
-}
 
 bool IsNumber(char *NumberString){ 
 	uint16_t i,index_last;

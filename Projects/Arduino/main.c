@@ -1,6 +1,6 @@
 /**
   ******************************************************************************
-  * @file    PrinterHead_v3/main.c 
+  * @file    PrinterHead/main.c 
   * @author  Flux Firmware Team
   * @version V1.0.0
   * @date    29-January-2016
@@ -36,6 +36,7 @@ extern volatile bool Show_Sensor_Data;
 
 extern uint16_t RTC_ADC_Value;
 extern void Detect_Laser_Power(void);
+extern void (*Interlock_Exti_Func)(void);
 
 void USART1_IRQHandler(void) 
 {
@@ -49,6 +50,14 @@ void TIM6_DAC_IRQHandler(void){
 		//TODO
 		TIM_ClearITPendingBit(TIM6, /*TIM_IT_Update*/ TIM_FLAG_Update);
 		
+	}
+}
+
+void EXTI2_3_IRQHandler(void){
+    if(EXTI_GetITStatus(EXTI_Line2) != RESET)
+	{
+        (*Interlock_Exti_Func)();
+		EXTI_ClearITPendingBit(EXTI_Line2);
 	}
 }
 
@@ -96,6 +105,8 @@ int main(){
 		Uart1_ISR_Enable();//testing
 	#endif
 	
+    Using_Time_Initial();
+    
 	Six_Axis_Sensor_Initial();
 
 	//Module seprate configuration
@@ -187,9 +198,11 @@ int main(){
 		if(ModuleMode==FLUX_ONE_EXTRUDER_MODULE){
 			PID_Handler(); 
             Fan_Management();
-            Using_Time_Record();
+            Using_Time_Extruder_One_Record();
 		}else if(ModuleMode==FLUX_LASER_MODULE){
 			Detect_Laser_Power();
+            Using_Time_Laser_Record();
+            
 		}
         
 		Time_Count=millis()-LastTime;

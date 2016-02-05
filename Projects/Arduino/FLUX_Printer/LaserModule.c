@@ -10,14 +10,26 @@
 #include "fan.h"
 #include "Six_Axis_Sensor.h"
 #include "utilities.h"
+#include "Using_Time.h"
+
+uint32_t PDown_Start_Time=0;
+uint32_t PDown_Max_Time=0;
+bool Ended=TRUE;
+bool Measure_Laser_Power_Down=FALSE;
+void Laser_Pon(void);
+void Laser_Pdown(void);
+void (*Interlock_Exti_Func)(void) = Laser_Pdown;
+EXTI_InitTypeDef   EXTI_InitStructure;
+
 extern float Target_Temperature;
 extern volatile uint32_t Module_State;
 extern volatile bool Debug_Mode;
 extern volatile bool Show_Sensor_Data;
 
-void Laser_Cmd_Handler(void){
-	char * Command_Str;
 
+void Laser_Cmd_Handler(void){
+    uint32_t Laser_Pdown_Interval=0;
+	char * Command_Str;
 	char Response_Buffer[200];
 	Command_Str = strtok(NULL, " ");
 	
@@ -25,17 +37,19 @@ void Laser_Cmd_Handler(void){
 		Debug_Mode=FALSE;
 		Show_Sensor_Data=FALSE;
 		Reset_Module_State(NO_HELLO);
-		sprintf(Response_Buffer,"1 OK HELLO TYPE:LASER ID:%08X%08X%08X VENDOR:%s FIRMWARE:%s VERSION:%s FOCAL_LENGTH:%.2lf ",UUID[2],UUID[1],UUID[0],Vender,Firmware_Name,Firmware_Version,Read_Focal_Length());
+		sprintf(Response_Buffer,"1 OK HELLO TYPE:LASER ID:%08X%08X%08X VENDOR:%s FIRMWARE:%s VERSION:%s FOCAL_LENGTH:%.2lf USED:%u ",UUID[2],UUID[1],UUID[0],Vender,Firmware_Name,Firmware_Version,Read_Focal_Length(),Read_Using_Time());
 
 	}else if(!strcmp(Command_Str, "DEBUG")){
 		Debug_Mode=TRUE;
 		Reset_Module_State(NO_HELLO);
-		sprintf(Response_Buffer,"1 OK HELLO TYPE:LASER ID:%08X%08X%08X VENDOR:%s FIRMWARE:%s VERSION:%s FOCAL_LENGTH:%.2lf ",UUID[2],UUID[1],UUID[0],Vender,Firmware_Name,Firmware_Version,Read_Focal_Length());
+		sprintf(Response_Buffer,"1 OK HELLO TYPE:LASER ID:%08X%08X%08X VENDOR:%s FIRMWARE:%s VERSION:%s FOCAL_LENGTH:%.2lf USED:%u ",UUID[2],UUID[1],UUID[0],Vender,Firmware_Name,Firmware_Version,Read_Focal_Length(),Read_Using_Time());
 
 	}else if(!strcmp(Command_Str, "SHOW")){
 		Show_Sensor_Msg();
 		Show_Sensor_Data=TRUE;
 		sprintf(Response_Buffer,"1 OK ");
+	}else if(!strcmp(Command_Str, "SHOW1")){
+		sprintf(Response_Buffer,"1 OK x%.2f y%.2f D%.2f ",Kal_X.angle,Kal_Y.angle,Degree_Now);
 	}else if(!strcmp(Command_Str, "PING")){
 		//error check
 		if(!(Module_State&(SHAKE|TILT)))
@@ -62,7 +76,27 @@ void Laser_Cmd_Handler(void){
 		}else{
 			sprintf(Response_Buffer,"1 ER UNKNOW_COMMAND ");
 		}
-	}else{
+	}else if(!strcmp(Command_Str, "DETAIL")){
+		sprintf(Response_Buffer,"1 OK DATE:%s ",Firmware_Date);
+	}else if(!strcmp(Command_Str, "USING_TIME")){
+		sprintf(Response_Buffer,"1 OK %u ",Read_Using_Time());
+	}else if(!strcmp(Command_Str, "START")){
+        PDown_Max_Time=0;
+        Measure_Laser_Power_Down=TRUE;
+        Interlock_Exti_Config();
+        sprintf(Response_Buffer,"OK");
+    }else if(!strcmp(Command_Str, "END")){
+        if(!Ended){
+            Laser_Pdown_Interval=millis()-PDown_Start_Time;
+            if(Laser_Pdown_Interval>PDown_Max_Time)
+                PDown_Max_Time=Laser_Pdown_Interval;
+            //printf("e2\n");
+        }
+        Ended=TRUE;
+        Measure_Laser_Power_Down=FALSE;
+        Interlock_Exti_Break();
+        sprintf(Response_Buffer,"%d ",PDown_Max_Time);
+    }else{
 		sprintf(Response_Buffer,"1 ER UNKNOW_COMMAND ");
 	}
 	
@@ -87,4 +121,60 @@ void Detect_Laser_Power(void){
 	}else{
 		Set_Module_State(LASER_DOWN);
 	}
+    if(Measure_Laser_Power_Down){
+        if(Ended && !GPIO_ReadInputDataBit(GPIOB,GPIO_Pin_2)){ 
+            PDown_Start_Time=millis();
+            Ended=FALSE;
+            Interlock_Exti_Func=Laser_Pon;
+            EXTI_InitStructure.EXTI_Line = EXTI_Line2;  
+            EXTI_InitStructure.EXTI_Mode = EXTI_Mode_Interrupt;
+            EXTI_InitStructure.EXTI_Trigger = EXTI_Trigger_Rising;//EXTI_Trigger_Falling;
+            EXTI_InitStructure.EXTI_LineCmd = ENABLE;
+            EXTI_Init(&EXTI_InitStructure);
+            //printf("2F\n");
+            EXTI_ClearITPendingBit(EXTI_Line2);
+        }
+        if(!Ended && GPIO_ReadInputDataBit(GPIOB,GPIO_Pin_2)){
+            uint32_t interval_Time=millis()-PDown_Start_Time;
+            Ended=TRUE;
+            if(interval_Time>PDown_Max_Time)
+                PDown_Max_Time=interval_Time;
+            Interlock_Exti_Func=Laser_Pdown;
+            EXTI_InitStructure.EXTI_Line = EXTI_Line2;  
+            EXTI_InitStructure.EXTI_Mode = EXTI_Mode_Interrupt;
+            EXTI_InitStructure.EXTI_Trigger = EXTI_Trigger_Falling;//EXTI_Trigger_Falling;
+            EXTI_InitStructure.EXTI_LineCmd = ENABLE;
+            EXTI_Init(&EXTI_InitStructure);
+            //printf("2O%d\n",interval_Time);
+            EXTI_ClearITPendingBit(EXTI_Line2);
+        }
+    }
 }
+
+void Laser_Pon(void){
+    uint32_t interval_Time=millis()-PDown_Start_Time;
+    Ended=TRUE;
+    if(interval_Time>PDown_Max_Time)
+        PDown_Max_Time=interval_Time;
+    
+    Interlock_Exti_Func=Laser_Pdown;
+    EXTI_InitStructure.EXTI_Line = EXTI_Line2;  
+    EXTI_InitStructure.EXTI_Mode = EXTI_Mode_Interrupt;
+    EXTI_InitStructure.EXTI_Trigger = EXTI_Trigger_Falling;//EXTI_Trigger_Falling;
+    EXTI_InitStructure.EXTI_LineCmd = ENABLE;
+    EXTI_Init(&EXTI_InitStructure);
+    //printf("2o%d\n",interval_Time);
+}
+
+void Laser_Pdown(void){  
+    PDown_Start_Time=millis();
+    Ended=FALSE;
+    Interlock_Exti_Func=Laser_Pon;
+    EXTI_InitStructure.EXTI_Line = EXTI_Line2;  
+    EXTI_InitStructure.EXTI_Mode = EXTI_Mode_Interrupt;
+    EXTI_InitStructure.EXTI_Trigger = EXTI_Trigger_Rising;//EXTI_Trigger_Falling;
+    EXTI_InitStructure.EXTI_LineCmd = ENABLE;
+    EXTI_Init(&EXTI_InitStructure);
+    //printf("2f\n");
+}
+

@@ -443,11 +443,12 @@ void Laser_Switch_Config(void){
 	/* Configure PB9 in output pushpull mode */
 	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_9;
 	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;
-	GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
+	GPIO_InitStructure.GPIO_OType = GPIO_OType_OD;
 	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
 	GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;	//µL´£¤É¹qªý
 	GPIO_Init(GPIOB, &GPIO_InitStructure);
 	
+    //dectect laser power
 	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_2;
 	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN;
 	GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
@@ -544,3 +545,29 @@ static void Extruder_One_Self_Test_IO_Config(void){
 	GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
 	GPIO_Init(GPIOB, &GPIO_InitStructure);
 }
+
+void Interlock_Exti_Config(void){
+	EXTI_InitTypeDef   EXTI_InitStructure;
+	
+	SYSCFG_EXTILineConfig(EXTI_PortSourceGPIOB, EXTI_PinSource2);
+	
+	/* Configure EXTI12 line */
+	EXTI_InitStructure.EXTI_Line = EXTI_Line2;  
+	EXTI_InitStructure.EXTI_Mode = EXTI_Mode_Interrupt;
+	EXTI_InitStructure.EXTI_Trigger = EXTI_Trigger_Falling;
+	EXTI_InitStructure.EXTI_LineCmd = ENABLE;
+	EXTI_Init(&EXTI_InitStructure);
+}
+
+void Interlock_Exti_Break(void){
+    EXTI_InitTypeDef   EXTI_InitStructure;
+
+	/* Configure EXTI12 line */
+	EXTI_InitStructure.EXTI_Line = EXTI_Line2;  
+	EXTI_InitStructure.EXTI_Mode = EXTI_Mode_Interrupt;
+	EXTI_InitStructure.EXTI_Trigger = EXTI_Trigger_Falling;
+	EXTI_InitStructure.EXTI_LineCmd = DISABLE;
+	EXTI_Init(&EXTI_InitStructure);
+}
+
+
