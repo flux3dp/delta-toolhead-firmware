@@ -20,8 +20,10 @@ void Laser_Pon(void);
 void Laser_Pdown(void);
 void (*Interlock_Exti_Func)(void) = Laser_Pdown;
 EXTI_InitTypeDef   EXTI_InitStructure;
-Interlock_Status_Type Interlock_Last_Status=Laser_Power_On;
-Interlock_Status_Type Interlock_Status_Mask=Laser_Power_On;
+Laser_Status_Type Interlock_Last_Status=Laser_Power_On;
+Laser_Status_Type Interlock_Status_Mask=Laser_Power_On;
+Laser_Status_Type User_Switch=Laser_Power_Down;
+
 uint32_t Laser_Power_Current_Time=0;
 
 
@@ -111,11 +113,13 @@ void Laser_Cmd_Handler(void){
 }
 
 void Laser_Switch_On(void){
+    User_Switch=Laser_Power_On;
 	GPIO_ResetBits(GPIOA,GPIO_Pin_0);
 	GPIO_ResetBits(GPIOB,GPIO_Pin_9);
 }
 
 void Laser_Switch_Off(void){
+    User_Switch=Laser_Power_Down;
 	GPIO_SetBits(GPIOA,GPIO_Pin_0);
 	GPIO_SetBits(GPIOB,GPIO_Pin_9);
 }

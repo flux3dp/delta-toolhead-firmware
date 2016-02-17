@@ -4,7 +4,7 @@ typedef enum
 {
 	Laser_Power_On,
 	Laser_Power_Down
-}Interlock_Status_Type;
+}Laser_Status_Type;
 
 void Laser_Cmd_Handler(void);
 void Laser_Switch_On(void);

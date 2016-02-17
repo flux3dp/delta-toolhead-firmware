@@ -3,6 +3,8 @@
 #include "command.h"
 #include "heater.h"
 #include <stdio.h>
+#include "LaserModule.h"
+
 static volatile uint32_t Using_Last_Time=0;
 uint32_t Current_Using_Time_Addr=Using_Time_Start_Addr;
 uint32_t Current_Using_Time_Backup_Addr=Using_Time_Backup_Start_Addr;
@@ -13,6 +15,8 @@ bool Write_Using_Time(uint32_t Addr,uint32_t data);
 uint32_t Read_Rom_Data(uint32_t Addr);
 bool Add_Using_Time(uint16_t time_minute);
 uint32_t Laser_Time_Count=0;
+
+extern Laser_Status_Type User_Switch;
 bool Using_Time_Initial(void){
     //find maxmun number or no data
     uint32_t Max_Using_Time_Addr=0;
@@ -139,7 +143,7 @@ void Using_Time_Laser_Record(void){
     if(interval > 1000){
         Using_Last_Time=millis();
          
-        if(GPIO_ReadInputDataBit(GPIOB,GPIO_Pin_2)==1){
+        if(User_Switch==Laser_Power_On){
             Laser_Time_Count++;
         }
         if(Laser_Time_Count>=60){
