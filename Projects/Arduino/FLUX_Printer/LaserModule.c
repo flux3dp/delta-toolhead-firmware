@@ -20,12 +20,17 @@ void Laser_Pon(void);
 void Laser_Pdown(void);
 void (*Interlock_Exti_Func)(void) = Laser_Pdown;
 EXTI_InitTypeDef   EXTI_InitStructure;
+Interlock_Status_Type Interlock_Last_Status=Laser_Power_On;
+Interlock_Status_Type Interlock_Status_Mask=Laser_Power_On;
+uint32_t Laser_Power_Current_Time=0;
+
 
 extern float Target_Temperature;
 extern volatile uint32_t Module_State;
 extern volatile bool Debug_Mode;
 extern volatile bool Show_Sensor_Data;
-
+extern Kalman_Data_Struct Kal_X,Kal_Y;
+extern float Degree_Now;
 
 void Laser_Cmd_Handler(void){
     uint32_t Laser_Pdown_Interval=0;
@@ -116,7 +121,7 @@ void Laser_Switch_Off(void){
 }
 
 void Detect_Laser_Power(void){
-	if(GPIO_ReadInputDataBit(GPIOB,GPIO_Pin_2)==1){
+	if(Interlock_Status_Mask==Laser_Power_On){
 		Reset_Module_State(LASER_DOWN);
 	}else{
 		Set_Module_State(LASER_DOWN);
@@ -178,3 +183,28 @@ void Laser_Pdown(void){
     //printf("2f\n");
 }
 
+void Debounce_Laser_Power(void){
+    uint32_t Laser_Power_Down_Time;
+    if(Read_Laser_Power()){
+        if(Interlock_Last_Status==Laser_Power_On){
+            //still on
+            
+        }else{
+            //off->on
+            Interlock_Last_Status=Laser_Power_On;
+            Interlock_Status_Mask=Laser_Power_On;
+        }
+    }else{
+        if(Interlock_Last_Status==Laser_Power_On){
+            //on->off
+            Laser_Power_Current_Time=millis();
+            Interlock_Last_Status=Laser_Power_Down;
+        }else{
+            //still off
+            Laser_Power_Down_Time=millis()-Laser_Power_Current_Time;
+            if(Laser_Power_Down_Time>500){//500ms
+                Interlock_Status_Mask=Laser_Power_Down;
+            }
+        }
+    }
+}

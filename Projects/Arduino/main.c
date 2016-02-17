@@ -36,6 +36,7 @@ extern volatile bool Show_Sensor_Data;
 
 extern uint16_t RTC_ADC_Value;
 extern void Detect_Laser_Power(void);
+extern void Debounce_Laser_Power(void);
 extern void (*Interlock_Exti_Func)(void);
 
 void USART1_IRQHandler(void) 
@@ -200,6 +201,7 @@ int main(){
             Fan_Management();
             Using_Time_Extruder_One_Record();
 		}else if(ModuleMode==FLUX_LASER_MODULE){
+            Debounce_Laser_Power();
 			Detect_Laser_Power();
             Using_Time_Laser_Record();
             
