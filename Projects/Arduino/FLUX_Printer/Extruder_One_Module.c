@@ -20,6 +20,7 @@ extern volatile bool Debug_Mode;
 extern volatile bool Show_Sensor_Data;
 extern Kalman_Data_Struct Kal_X,Kal_Y;
 extern float Degree_Now;
+extern uint16_t RTC_ADC_Value;
 void Extruder_One_Cmd_Handler(void){
 	char * Command_Str;
 		
@@ -104,6 +105,8 @@ void Extruder_One_Cmd_Handler(void){
 		sprintf(Response_Buffer,"1 OK %u ",Read_Using_Time());
 	}else if(!strcmp(Command_Str, "DETAIL")){
 		sprintf(Response_Buffer,"1 OK DATE:%s ",Firmware_Date);
+	}else if(!strcmp(Command_Str, "READ_ITS")){
+		sprintf(Response_Buffer,"1 OK IT=%.2f NTC=%u ",Read_Internal_Temperature(),RTC_ADC_Value);
 	}else{
 		sprintf(Response_Buffer,"1 ER UNKNOW_COMMAND ");
 	}

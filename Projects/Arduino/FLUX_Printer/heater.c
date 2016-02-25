@@ -73,14 +73,14 @@ void PID_Handler(void){
 		Set_Exhalation_Fan_PWM(255);//close fan
 	}
 	
-	if(RT>900.0){
+	if(RT>900.0 || RT<=0.0001){
 		Set_Heater_PWM(0);
-		Set_Module_State(PID_OUT_OF_CONTROL);
+		Set_Module_State(HARDWARE_ERROR);
 		return;
 	}else if(Target_Temperature <= 0.001){
         Set_Heater_PWM(0);
         return;
-    }else if( RT > Max_Temperature+10 || RTC_ADC_Value>583){
+    }else if( RT > Max_Temperature+10 || RTC_ADC_Value>583 ){
 		Set_Heater_PWM(0);
 		Set_Module_State(PID_OUT_OF_CONTROL);
 		return;

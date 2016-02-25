@@ -1,3 +1,4 @@
+#include "stm32f0xx.h"
 #include "command.h"
 #include <stdio.h>
 #include "stm32f0xx_flash.h"
@@ -270,6 +271,7 @@ uint16_t Read_ADC_Value(ADC_Channel_Type channel){
 	ADC_InitStructure.ADC_ScanDirection = ADC_ScanDirection_Upward;
 	ADC_Init(ADC1, &ADC_InitStructure); 
 
+    
 	/* Convert the ADC1 Channel 0 with 239.5 Cycles as sampling time */ 
 	if(channel==Temperature_Channel)
 		ADC_ChannelConfig(ADC1, ADC_Channel_0, ADC_SampleTime_239_5Cycles); //ADC_SampleTime_239_5Cycles
@@ -279,6 +281,11 @@ uint16_t Read_ADC_Value(ADC_Channel_Type channel){
 		ADC_ChannelConfig(ADC1, ADC_Channel_6, ADC_SampleTime_239_5Cycles);  //ADC_SampleTime_239_5Cycles
 	else if(channel==ID1_Channel)
 		ADC_ChannelConfig(ADC1, ADC_Channel_7, ADC_SampleTime_239_5Cycles);  
+    else if(channel==ITS_Channel){
+		ADC_ChannelConfig(ADC1, ADC_Channel_16, ADC_SampleTime_239_5Cycles);  
+        ADC_TempSensorCmd(ENABLE);
+        ADC_VrefintCmd(ENABLE);
+    }
 	else
 		return 0;
 	/* ADC Calibration */
@@ -302,6 +309,10 @@ uint16_t Read_ADC_Value(ADC_Channel_Type channel){
 	while(ADC_GetFlagStatus(ADC1, ADC_FLAG_EOC) == RESET);
 	/* Get ADC1 converted data */
 	return ADC_GetConversionValue(ADC1);
+}
+
+float Read_Internal_Temperature(void){
+	return (float)((*(__IO uint16_t *)(0x1FFFF7B8)-Read_ADC_Value(ITS_Channel))/5.33721+30.0);
 }
 
 bool Read_Self_Test_IO(void){

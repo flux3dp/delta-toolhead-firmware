@@ -11,13 +11,14 @@
 #define Extruder_Cmd_Timeout 300000
 #define Laser_Cmd_Timeout 2000
 #define UUID STM32F0_UUID
-
+#define HARDWARE_ERROR PID_OUT_OF_CONTROL
 typedef enum
 {
 	Temperature_Channel,
 	NTC_Channel,
 	ID0_Channel,
-	ID1_Channel
+	ID1_Channel,
+    ITS_Channel,//Internal Temperature Sensor
 }ADC_Channel_Type;
 
 typedef enum
@@ -72,6 +73,9 @@ bool Ascii_Checksum_Compare(char * str_Data,uint8_t checksum);
 bool Read_Self_Test_IO(void);
 
 void Self_Test(void);
+
+float Read_Internal_Temperature(void);
+
 
 
 

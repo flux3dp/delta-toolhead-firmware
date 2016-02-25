@@ -106,6 +106,7 @@ char *int2binStr(unsigned n, char *buf);
 
 extern void(*delay)(uint32_t); //Func pointer to delay_ms
 
+uint32_t Read_Rom_Data(uint32_t Addr);
 #endif /* __UTILITIES_H */
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

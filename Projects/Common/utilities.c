@@ -54,6 +54,9 @@ volatile uint32_t Time_Count=0;
 static void Init_CS(void);
 static void staticDelay(uint32_t);
 
+uint32_t Read_Rom_Data(uint32_t Addr){
+	return *(__IO uint32_t *)Addr;
+}
 
 uint8_t Get_Checksum(char *Data,uint16_t length){
 	uint16_t i=0;

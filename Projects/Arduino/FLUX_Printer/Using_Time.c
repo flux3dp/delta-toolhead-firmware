@@ -1,5 +1,5 @@
-#include "Using_Time.h"
 #include "utilities.h"
+#include "Using_Time.h"
 #include "command.h"
 #include "heater.h"
 #include <stdio.h>
@@ -91,9 +91,7 @@ bool Check_Using_Time_Validation(uint32_t Addr){
 		return FALSE;
 	}
 }
-uint32_t Read_Rom_Data(uint32_t Addr){
-	return *(__IO uint32_t *)Addr;
-}
+
 bool Add_Using_Time(uint16_t time_minute){
     uint32_t current_data;
     //Synchronize
