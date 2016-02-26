@@ -61,32 +61,36 @@ float Read_Temperature(void){
 }
 
 void PID_Handler(void){
-	float RT=Read_Temperature();
+	float RT=1.0;
 	Auto_PID_Completed=TRUE;
-	
+
 	if(millis()-Last_PID_Time < PID_Period_Time)
 		return;
 	Last_PID_Time=millis();
+    
+    RT=Read_Temperature();
 	if(RT < Exhalation_Fan_Close_Temp){
 		Set_Exhalation_Fan_PWM(0);//close fan
 	}else{
 		Set_Exhalation_Fan_PWM(255);//close fan
 	}
 	
-	if(RT>900.0 || RT<=0.0001){
+	if(RT<0.001 || RT>900.0){
 		Set_Heater_PWM(0);
 		Set_Module_State(HARDWARE_ERROR);
 		return;
-	}else if(Target_Temperature <= 0.001){
-        Set_Heater_PWM(0);
-        return;
-    }else if( RT > Max_Temperature+10 || RTC_ADC_Value>583 ){
+	}else if( RT > Max_Temperature+10 || RTC_ADC_Value>416){//583=55C 454=45C 416=42C
 		Set_Heater_PWM(0);
 		Set_Module_State(PID_OUT_OF_CONTROL);
 		return;
-	}
+	}else if(Target_Temperature <= 0.001){
+        Set_Heater_PWM(0);
+        Reset_Module_State(HARDWARE_ERROR);
+        return;
+    }
 	if(Auto_PID_Completed){
 		PID_Control();
+        Reset_Module_State(HARDWARE_ERROR);
 	}else{
 		//if set Target_Temperature
 		//PID_Autotune();

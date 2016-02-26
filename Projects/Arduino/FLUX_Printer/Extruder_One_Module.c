@@ -106,7 +106,7 @@ void Extruder_One_Cmd_Handler(void){
 	}else if(!strcmp(Command_Str, "DETAIL")){
 		sprintf(Response_Buffer,"1 OK DATE:%s ",Firmware_Date);
 	}else if(!strcmp(Command_Str, "READ_ITS")){
-		sprintf(Response_Buffer,"1 OK IT=%.2f NTC=%u ",Read_Internal_Temperature(),RTC_ADC_Value);
+		sprintf(Response_Buffer,"1 OK IT=%.2f NTC=%.2f ",Read_Internal_Temperature(),(RTC_ADC_Value-183.8)/12.87742+24.0);
 	}else{
 		sprintf(Response_Buffer,"1 ER UNKNOW_COMMAND ");
 	}
