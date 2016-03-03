@@ -32,4 +32,5 @@ uint8_t PID_Compute(void);
 uint16_t Get_Pid_Output_Uint16(void);
 void Set_Heater_PWM_Uint16(uint16_t PWM);
 void Set_Temperature(float setpoint);
+void Temperature_Manage(void);
 

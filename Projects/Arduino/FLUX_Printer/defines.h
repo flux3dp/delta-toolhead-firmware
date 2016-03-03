@@ -1,12 +1,12 @@
 #define Firmware_Version	"1.0.8"
 #define Firmware_Name		"EXCALIBUR"//"TESTING"//
-#define Firmware_Date       "20160226"
+#define Firmware_Date       "20160301"
 #define STM32F0_UUID ((uint32_t *)0x1FFFF7AC)
 #define Enable_IWDG 1
 #define Enable_Debug_Msg 0
 //#define Function_Test 1
 
-static const char Vender[] = "FLUX\\ .inc";
+static const char Vender[] = "FLUX\\ Inc.";
 
 typedef enum
 {

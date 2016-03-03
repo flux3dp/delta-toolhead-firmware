@@ -11,7 +11,11 @@ static uint32_t Last_PID_Time=0;
 static bool Auto_PID_Completed = FALSE;
 static bool pid_reset = TRUE;
 
-uint16_t RTC_ADC_Value=0;
+static uint32_t T_Manage_Last_Time=0;
+static float Last_Temp=0;
+
+uint16_t NTC_ADC_Value=0;
+float NTC_Centigrade=0;
 //For PID_Control
 static float Kp=Kp_Default;
 static float Ki=Ki_Default;
@@ -79,7 +83,7 @@ void PID_Handler(void){
 		Set_Heater_PWM(0);
 		Set_Module_State(HARDWARE_ERROR);
 		return;
-	}else if( RT > Max_Temperature+10 || RTC_ADC_Value>416){//583=55C 454=45C 416=42C
+	}else if( RT > Max_Temperature+10 || NTC_ADC_Value>416){//583=55C 454=45C 416=42C
 		Set_Heater_PWM(0);
 		Set_Module_State(PID_OUT_OF_CONTROL);
 		return;
@@ -218,3 +222,24 @@ void Set_Heater_PWM_Uint16(uint16_t PWM){
 void Disable_All_Heater(void){
 	Set_Heater_PWM(0);
 }
+
+void Temperature_Manage(void){
+    float Current_Temp;
+    uint32_t interval=0;
+
+    if(Target_Temperature<0.01)
+        return;
+    interval=millis()-T_Manage_Last_Time;
+    if(interval>2000){
+        T_Manage_Last_Time=millis();
+        if(Last_Temp<0.01){
+            Last_Temp=Read_Temperature();//(Read_ADC_Value(NTC_Channel)-183.8)/12.87742+24.0;
+            return;
+        }
+        Current_Temp=Read_Temperature();//(Read_ADC_Value(NTC_Channel)-183.8)/12.87742+24.0;
+        
+        printf("%.2f C/S\n",(Current_Temp-Last_Temp)/interval*1000);
+        Last_Temp=Read_Temperature();//(Read_ADC_Value(NTC_Channel)-183.8)/12.87742+24.0;
+    }
+}
+

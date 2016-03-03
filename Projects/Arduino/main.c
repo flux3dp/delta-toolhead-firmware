@@ -34,7 +34,8 @@ extern volatile uint32_t Module_State;
 extern volatile bool Debug_Mode;
 extern volatile bool Show_Sensor_Data;
 
-extern uint16_t RTC_ADC_Value;
+extern uint16_t NTC_ADC_Value;
+extern float NTC_Centigrade;
 extern void Detect_Laser_Power(void);
 extern void Debounce_Laser_Power(void);
 extern void (*Interlock_Exti_Func)(void);
@@ -200,6 +201,7 @@ int main(){
             PID_Handler(); 
             Fan_Management();
             Using_Time_Extruder_One_Record();
+            //Temperature_Manage();
 		}else if(ModuleMode==FLUX_LASER_MODULE){
             Debounce_Laser_Power();
 			Detect_Laser_Power();
@@ -213,8 +215,9 @@ int main(){
 			if(Show_Sensor_Data)
 				Show_Sensor_RawData();
 			if(ModuleMode==FLUX_ONE_EXTRUDER_MODULE){
-				RTC_ADC_Value=Read_ADC_Value(NTC_Channel);	
-				//printf("rtc value=%d\n",RTC_ADC_Value);
+				NTC_ADC_Value=Read_ADC_Value(NTC_Channel);	
+				//printf("rtc value=%d\n",NTC_ADC_Value);
+                //NTC_Centigrade=(NTC_ADC_Value-183.8)/12.87742+24.0;
 			}
 		}
 			
