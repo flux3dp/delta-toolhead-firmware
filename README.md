@@ -65,7 +65,7 @@ Note2:if TT:NAN that is target temperature had not been setted
 
 ⇠ `1 ER:32 TILT\n`
 
-⇠ `1 ER:64 PID_OUT_OF_CONTROL\n`
+⇠ `1 ER:64 HARDWARE_ERROR\n`
 
 ⇠ `1 ER:128 FAN_FAILURE\n`
 
