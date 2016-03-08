@@ -190,7 +190,7 @@ int main(){
 	#if Enable_IWDG
 		IWDG_Configuration();
 	#endif
-        
+
 	while(1){
 
 		Feed_WatchDog();//feed the watch dog or it will bite u after 800ms
@@ -198,10 +198,10 @@ int main(){
 		Xcode_Handler();
 		
 		if(ModuleMode==FLUX_ONE_EXTRUDER_MODULE){
+            Temperature_Manage();
             PID_Handler(); 
             Fan_Management();
             Using_Time_Extruder_One_Record();
-            //Temperature_Manage();
 		}else if(ModuleMode==FLUX_LASER_MODULE){
             Debounce_Laser_Power();
 			Detect_Laser_Power();

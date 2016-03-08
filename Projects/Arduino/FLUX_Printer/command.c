@@ -72,6 +72,10 @@ void Reset_Module_State(Module_State_Enum state){
 	Module_State &= ~((uint32_t)state);
 }
 
+uint32_t Get_Module_State(Module_State_Enum state){
+    return Module_State & ((uint32_t)state);
+}
+
 void Xcode_Handler(void){
 	
 	char *strSplit;	//For parameter retriving 

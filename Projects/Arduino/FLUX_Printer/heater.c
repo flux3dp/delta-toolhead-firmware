@@ -12,7 +12,11 @@ static bool Auto_PID_Completed = FALSE;
 static bool pid_reset = TRUE;
 
 static uint32_t T_Manage_Last_Time=0;
+static uint32_t T_Manage_Mask_Time=0;
 static float Last_Temp=0;
+
+static float Last_Error=-999;
+static uint32_t Heater_Monitor_Last_Time=0;
 
 uint16_t NTC_ADC_Value=0;
 float NTC_Centigrade=0;
@@ -79,27 +83,23 @@ void PID_Handler(void){
 		Set_Exhalation_Fan_PWM(255);//close fan
 	}
 	
-	if(RT<0.001 || RT>900.0){
+	if(RT<0.001 || RT>900.0 || RT > Max_Temperature+10 || NTC_ADC_Value>416 || Get_Module_State(HEATER_FAILURE)){//Thermal res is short or open,583=55C 454=45C 416=42C
 		Set_Heater_PWM(0);
 		Set_Module_State(HARDWARE_ERROR);
-		return;
-	}else if( RT > Max_Temperature+10 || NTC_ADC_Value>416){//583=55C 454=45C 416=42C
-		Set_Heater_PWM(0);
-		Set_Module_State(PID_OUT_OF_CONTROL);
-		return;
 	}else if(Target_Temperature <= 0.001){
         Set_Heater_PWM(0);
         Reset_Module_State(HARDWARE_ERROR);
-        return;
-    }
-	if(Auto_PID_Completed){
+    }else{
+        if(Auto_PID_Completed){
 		PID_Control();
         Reset_Module_State(HARDWARE_ERROR);
-	}else{
-		//if set Target_Temperature
-		//PID_Autotune();
-		
-	}
+        }else{
+            //if set Target_Temperature
+            //PID_Autotune();
+            
+        }
+    }
+	
 }
 
 void PID_Control(void){
@@ -112,6 +112,8 @@ void Set_Temperature(float setpoint){
 	Target_Temperature=setpoint;
 	if(setpoint>0.1)
 		Set_Exhalation_Fan_PWM(255);
+    Last_Temp=0;
+    T_Manage_Mask_Time=millis();
 }
 
 //return 0~255
@@ -119,16 +121,12 @@ uint8_t Get_Pid_Output(void) {
 	float pid_output;
 	float pid_error;
 	float current_temperature = Read_Temperature();
-	
+    
 	pid_error = Target_Temperature+Temperature_Offset - current_temperature;
 	if (pid_error > PID_FUNCTIONAL_RANGE) {
 		pid_output = PID_MAX;
 		pid_reset = TRUE;
-	}else if( current_temperature> (Max_Temperature+10)){
-		pid_output = 0;
-		pid_reset = TRUE;
-		Set_Module_State(PID_OUT_OF_CONTROL);
-	}else if (pid_error < -PID_FUNCTIONAL_RANGE || Target_Temperature <= 0.0 || current_temperature> Max_Temperature) {
+	}else if (pid_error < -PID_FUNCTIONAL_RANGE) { //Over temperature up to 10C
 		pid_output = 0;
 		pid_reset = TRUE;
 	}else {
@@ -156,53 +154,9 @@ uint8_t Get_Pid_Output(void) {
 		}
 	}
 	temp_dState = current_temperature;
-	Reset_Module_State(PID_OUT_OF_CONTROL);
+ 
 	//printf("E:%.1lf T:%.1lf O:%.1lf P:%.1lf I:%.1lf D:%.1lf\n",pid_error-1.0,current_temperature,pid_output,pTerm,iTerm,dTerm);
 	return (uint8_t)pid_output;
-}
-
-//return 0~65535
-uint16_t Get_Pid_Output_Uint16(void) {
-	float pid_output;
-	float pid_error;
-	float current_temperature = Read_Temperature();
-	
-	pid_error = Target_Temperature+Temperature_Offset - current_temperature;
-	if (pid_error > PID_FUNCTIONAL_RANGE) {
-		pid_output = PID_MAX;
-		pid_reset = TRUE;
-	}
-	else if (pid_error < -PID_FUNCTIONAL_RANGE || Target_Temperature <= 0.0 || current_temperature> Max_Temperature) {
-		pid_output = 0;
-		pid_reset = TRUE;
-	}
-	else {
-		if (pid_reset) {
-			temp_iState = 0.0;
-			pid_reset = FALSE;
-		}
-		pTerm = Kp * pid_error;
-		
-		temp_iState += pid_error;
-		temp_iState = constrain(temp_iState, temp_iState_min, temp_iState_max+1.0);
-		iTerm = Ki * temp_iState;
-
-		dTerm = K2 * Kd * (current_temperature - temp_dState) + K1 * dTerm;
-		//printf("1=%.1lf , 2=%.1lf , 3=%.1lf\n",K2 * Kd * (current_temperature - temp_dState),K1 * dTerm,dTerm);
-		pid_output = pTerm + iTerm - dTerm;
-		
-		if (pid_output > PID_MAX) {
-			if (pid_error > 0.0) temp_iState -= pid_error; // conditional un-integration
-			pid_output = PID_MAX;
-		}
-		else if (pid_output <= 0.0) {
-			if (pid_error <= 0.0) temp_iState -= pid_error; // conditional un-integration
-			pid_output = 0.0;
-		}
-	}
-	temp_dState = current_temperature;
-	//printf("E:%.1lf T:%.1lf O:%.1lf P:%.1lf I:%.1lf D:%.1lf\n",pid_error-1.0,current_temperature,pid_output,pTerm,iTerm,dTerm);
-	return (uint16_t)pid_output;
 }
 
 void PID_Autotune(void){
@@ -225,21 +179,39 @@ void Disable_All_Heater(void){
 
 void Temperature_Manage(void){
     float Current_Temp;
+    float Temp_Error,Last_Temp_Error;
     uint32_t interval=0;
-
-    if(Target_Temperature<0.01)
+    float Temp_Per_Second;
+    
+    if(millis()-T_Manage_Mask_Time<20000)
         return;
     interval=millis()-T_Manage_Last_Time;
     if(interval>2000){
         T_Manage_Last_Time=millis();
         if(Last_Temp<0.01){
-            Last_Temp=Read_Temperature();//(Read_ADC_Value(NTC_Channel)-183.8)/12.87742+24.0;
+            Last_Temp=Read_Temperature();
             return;
         }
-        Current_Temp=Read_Temperature();//(Read_ADC_Value(NTC_Channel)-183.8)/12.87742+24.0;
+        Current_Temp=Read_Temperature();
+        Temp_Error=Target_Temperature-Current_Temp;
+//        Last_Temp_Error=ABS_F(Target_Temperature-Last_Temp);
+//        Temp_Per_Second=(Current_Temp-Last_Temp)/interval*1000;
+        if(Target_Temperature<0.01 && (Current_Temp-Last_Temp)>2){
+            //Real temperature is rising but heater was closed.
+            //printf("CurrT=%.2f\tLastT=%.2f\n",Current_Temp,Last_Temp);
+            Set_Module_State(HARDWARE_ERROR);
+            Set_Module_State(HEATER_FAILURE);
+        }else if(Target_Temperature>0.01 && Temp_Error>PID_FUNCTIONAL_RANGE && (Current_Temp-Last_Temp)<1.0){
+            //Running PID but ERROR is not convergency.
+            //printf("CurrT=%.2f\tLastT=%.2f\n",Current_Temp,Last_Temp);
+            Set_Module_State(HARDWARE_ERROR);
+            Set_Module_State(HEATER_FAILURE);
+        }else{
+            Reset_Module_State(HEATER_FAILURE);
+        }
         
-        printf("%.2f C/S\n",(Current_Temp-Last_Temp)/interval*1000);
-        Last_Temp=Read_Temperature();//(Read_ADC_Value(NTC_Channel)-183.8)/12.87742+24.0;
+        //printf("%.2f C/S\n",(Current_Temp-Last_Temp)/interval*1000);
+        Last_Temp=Current_Temp;//Read_Temperature();//(Read_ADC_Value(NTC_Channel)-183.8)/12.87742+24.0;
     }
 }
 

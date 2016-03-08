@@ -33,6 +33,7 @@ typedef enum
 	PID_OUT_OF_CONTROL	=64,
 	FAN_FAILURE			=128,
 	LASER_DOWN			=256,
+    HEATER_FAILURE      =512,
 }Module_State_Enum;
 
 //typedef struct
@@ -65,6 +66,8 @@ uint32_t * Get_UUID(void);
 void Set_Module_State(Module_State_Enum state);
 
 void Reset_Module_State(Module_State_Enum state);
+
+uint32_t Get_Module_State(Module_State_Enum state);
 
 bool Cmd_Checksum_Validation(char * Cmd_Data,uint16_t Length);
 
