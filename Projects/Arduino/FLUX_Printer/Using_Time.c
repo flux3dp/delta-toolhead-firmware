@@ -38,7 +38,7 @@ bool Using_Time_Initial(void){
             }
         }
     }
-    printf("Max_addr=%x\t Back_addr=%x\n",Max_Using_Time_Addr,Max_Using_Time_Backup_Addr);
+    //printf("Max_addr=%x\t Back_addr=%x\n",Max_Using_Time_Addr,Max_Using_Time_Backup_Addr);
     if(Max_Using_Time_Addr==0 && Max_Using_Time_Backup_Addr==0){
         Current_Using_Time_Addr=Using_Time_Start_Addr;
     }else{
@@ -48,7 +48,7 @@ bool Using_Time_Initial(void){
             Current_Using_Time_Addr=Max_Using_Time_Addr;
         }
     }
-    printf("Current addr=%x\n",Current_Using_Time_Addr);
+    //printf("Current addr=%x\n",Current_Using_Time_Addr);
 }
 
 bool Erase_Using_Time_Page(uint32_t Addr){
