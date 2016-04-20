@@ -201,7 +201,7 @@ void Heater_Config(void){
 	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF;
 	GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
 	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-	GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;	//µL´£¤É¹qªý
+	GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_DOWN;	
 	GPIO_Init(GPIOB, &GPIO_InitStructure);
 	
 	//Configure timer clock

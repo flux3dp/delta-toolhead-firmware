@@ -92,6 +92,13 @@ Six_Axis_Sensor_State_Type Six_Axis_Sensor_Initial(void)
 		Read_Axis_Value(Gyro_Y);
 		Read_Axis_Value(Gyro_Z);
 		
+        printf("Acc x=%lf\n",Read_Axis_Value(Acceler_X));
+		printf("Acc y=%lf\n",Read_Axis_Value(Acceler_Y));
+		printf("Acc z=%lf\n",Read_Axis_Value(Acceler_Z));
+		printf("Acc x=%lf\n",Read_Axis_Value(Acceler_X));
+		printf("Acc y=%lf\n",Read_Axis_Value(Acceler_Y));
+		printf("Acc z=%lf\n",Read_Axis_Value(Acceler_Z));
+        
 		printf("Gyro x=%lf\n",Read_Axis_Value(Gyro_X));
 		printf("Gyro y=%lf\n",Read_Axis_Value(Gyro_Y));
 		printf("Gyro z=%lf\n",Read_Axis_Value(Gyro_Z));

@@ -384,8 +384,8 @@ static void Test_Laser(void){
 	Test_Result+=Test_Sensor_RW();
 	Test_Result+=Test_Acceler_Range();
 	Test_Result+=8;//Test_Gyro_Range();
-	Test_Result+=Test_Laser_PWM_Switch();
-	Test_Result+=Test_Laser_Power_Switch();
+	Test_Result+=16;//Test_Laser_PWM_Switch();
+	Test_Result+=32;//Test_Laser_Power_Switch();
 	
 	binResult=int2binStr(Test_Result,buffer);
 	printf ("%08X%08X%08X 01 %s\n",UUID[2],UUID[1],UUID[0],binResult);

@@ -1,6 +1,6 @@
 #include <stdint.h>
 
-#define Max_Temperature	235.0
+#define Max_Temperature	800.0 //235.0
 #define Temperature_Offset 0.0
 #define PID_Period_Time 20
 #define Kp_Default 30.0

@@ -1,6 +1,6 @@
-#define Firmware_Version	"1.1.1"
+#define Firmware_Version	"1.1.2"
 #define Firmware_Name		"EXCALIBUR"//"TESTING"//
-#define Firmware_Date       "20160311"
+#define Firmware_Date       "20160331"
 #define STM32F0_UUID ((uint32_t *)0x1FFFF7AC)
 #define Enable_IWDG 1
 #define Enable_Debug_Msg 0
@@ -29,6 +29,7 @@ Version history
 1.0.8   20160226    Fix HARDWARE_ERROR bug.
 1.0.9   20160307    Heater monitoring
 1.1.0   20160308    Add temperature management feature.
-1.1.1   20160311    Bug:Hardware failure cause error 512 
+1.1.1   20160311    Bug:Hardware failure cause error 512.
+1.1.2   20160314    Alter factory testing items.
 
 */
