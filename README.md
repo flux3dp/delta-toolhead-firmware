@@ -76,12 +76,12 @@ Note2:if TT:NAN that is target temperature had not been setted
 Note: ER are general error responses,all commands could respond,ER:1~128 are only responded by PONG.
 
 *ER:64 HARDWARE_ERROR
-  1.Thermal short
-  2.Thernal open
-  3.Heater over temperature(245°C)
-  4.NTC over temperature(42°C)
-  5.Heat automaticlly(trigger ER 512)
-  6.Heater can't be heat(trigger ER 512)
+  1.Thermal short`
+  2.Thernal open`
+  3.Heater over temperature(245°C)`
+  4.NTC over temperature(42°C)`
+  5.Heat automaticlly(trigger ER 512)`
+  6.Heater can't be heat(trigger ER 512)`
 
 DEBUG MODE:
 
