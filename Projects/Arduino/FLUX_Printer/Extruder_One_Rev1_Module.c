@@ -1,4 +1,4 @@
-#include "Extruder_One_Module.h"
+#include "Extruder_One_Rev1_Module.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include "gpio.h"
@@ -21,7 +21,7 @@ extern volatile bool Show_Sensor_Data;
 extern Kalman_Data_Struct Kal_X,Kal_Y;
 extern float Degree_Now;
 extern uint16_t NTC_ADC_Value;
-void Extruder_One_Cmd_Handler(void){
+void Extruder_One_Rev1_Cmd_Handler(void){
 	char * Command_Str;
 		
 	//uint16_t Real_Temperatuer=0;
@@ -35,12 +35,12 @@ void Extruder_One_Cmd_Handler(void){
 		Debug_Mode=FALSE;
 		Show_Sensor_Data=FALSE;
 		Reset_Module_State(NO_HELLO);
-		sprintf(Response_Buffer,"1 OK HELLO TYPE:EXTRUDER ID:%08X%08X%08X VENDOR:%s FIRMWARE:%s VERSION:%s EXTRUDER:1 MAX_TEMPERATURE:%.1lf USED:%u ",UUID[2],UUID[1],UUID[0],Vender,Firmware_Name,Firmware_Version,Max_Temperature,Read_Using_Time());
+		sprintf(Response_Buffer,"1 OK HELLO TYPE:EXTRUDER ID:%08X%08X%08X VENDOR:%s FIRMWARE:%s VERSION:%s EXTRUDER:1R MAX_TEMPERATURE:%.1lf USED:%u ",UUID[2],UUID[1],UUID[0],Vender,Firmware_Name,Firmware_Version,Max_Temperature,Read_Using_Time());
 
 	}else if(!strcmp(Command_Str, "DEBUG")){
 		Debug_Mode=TRUE;
 		Reset_Module_State(NO_HELLO);
-		sprintf(Response_Buffer,"1 OK HELLO TYPE:EXTRUDER ID:%08X%08X%08X VENDOR:%s FIRMWARE:%s VERSION:%s EXTRUDER:1 MAX_TEMPERATURE:%.1lf USED:%u ",UUID[2],UUID[1],UUID[0],Vender,Firmware_Name,Firmware_Version,Max_Temperature,Read_Using_Time());
+		sprintf(Response_Buffer,"1 OK HELLO TYPE:EXTRUDER ID:%08X%08X%08X VENDOR:%s FIRMWARE:%s VERSION:%s EXTRUDER:1R MAX_TEMPERATURE:%.1lf USED:%u ",UUID[2],UUID[1],UUID[0],Vender,Firmware_Name,Firmware_Version,Max_Temperature,Read_Using_Time());
 
 	}else if(!strcmp(Command_Str, "SHOW")){
 		Show_Sensor_Msg();
@@ -60,7 +60,7 @@ void Extruder_One_Cmd_Handler(void){
 			sprintf(Response_Buffer,"%s%s",Response_Buffer,"TT:NAN ");
 		else
 			sprintf(Response_Buffer,"%sTT:%.1lf ",Response_Buffer,Target_Temperature);
-		sprintf(Response_Buffer,"%sFA:%d ",Response_Buffer,Read_Inhalation_Fan_Mask_PWM());
+		sprintf(Response_Buffer,"%sFA:%d FB:%d ",Response_Buffer,Read_Inhalation_Fan_Mask_PWM(),Read_Exhalation_Fan_PWM());
 		
 		//reset sensor state
 		Reset_Axis_Sensor_State();

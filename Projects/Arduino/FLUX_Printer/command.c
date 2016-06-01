@@ -10,6 +10,7 @@
 #include "defines.h"
 #include "LaserModule.h"
 #include "Extruder_One_Module.h"
+#include "Extruder_One_Rev1_Module.h"
 #include "Extruder_Duo_Module.h"
 #include "Unknow_Module.h"
 #include "Six_Axis_Sensor.h"
@@ -85,6 +86,7 @@ void Xcode_Handler(void){
 	if(!Debug_Mode){
 		switch(ModuleMode){
 			case FLUX_ONE_EXTRUDER_MODULE:
+            case FLUX_ONE_EXTRUDER_REV1_MODULE:
 				if(CmdTimeout_count>Extruder_Cmd_Timeout)
 					Set_Temperature(0);
 					if(Read_Temperature()<0.1)
@@ -152,6 +154,10 @@ void Xcode_Handler(void){
 				Laser_Cmd_Handler();
 				CmdTimeout_count=0;
 				break;
+            case FLUX_ONE_EXTRUDER_REV1_MODULE:
+                Extruder_One_Rev1_Cmd_Handler();
+				CmdTimeout_count=0;
+                break;
 			case Unknow:
 				Unknow_Module_Cmd_Handler();
 				CmdTimeout_count=0;
@@ -347,6 +353,9 @@ void Self_Test(void){
 			case FLUX_LASER_MODULE:
 				Test_Laser();
 				break;
+            case FLUX_ONE_EXTRUDER_REV1_MODULE:
+                Test_Extruder_One();
+                break;
 			default:
 				//could not recognize module type
 				printf ("%08X%08X%08X 00 %s\n",UUID[2],UUID[1],UUID[0],"0");

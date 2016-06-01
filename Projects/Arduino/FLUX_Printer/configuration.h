@@ -2,9 +2,9 @@
 #define HeaterGPIO	GPIOB
 #define HeaterPin	GPIO_Pin_13
 
-#define Heater_ADC_Min_Value 3212
+#define Extruder_One_ADC_Min_Value 3212
 #define Laser_ADC_Min_Value 2409
-
+#define Extruder_One_Rev1_ADC_Min_Value 1945
 #define Alarm_On() GPIO_ResetBits(GPIOB,GPIO_Pin_0)
 #define Alarm_Off() GPIO_SetBits(GPIOB,GPIO_Pin_0)
 
@@ -15,6 +15,7 @@ void Uart1_Config(void);
 void Uart1_ISR_Enable(void);
 void Uart1_ISR_Disable(void);
 void Fan_Inhalation_RPM_IO_Config(void);
+void Fan_Exhalation_RPM_IO_Config(void);
 void Fan_Exhalation_Config(void);
 void Fan_Inhalation_Config(void);
 void Heater_Config(void);

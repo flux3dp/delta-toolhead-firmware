@@ -25,6 +25,7 @@ volatile uint32_t CmdTimeout_count=0;
 
 extern volatile uint16_t Fan1_Count;
 extern volatile uint16_t Fan2_Count;
+extern volatile uint16_t Fan_Exh_Count;
 static void RCC_HSI_Configuration(void);
 static void Feed_WatchDog(void);
 
@@ -77,6 +78,13 @@ void EXTI4_15_IRQHandler(void){
 		/* Clear the EXTI line 14 pending bit */
 		EXTI_ClearITPendingBit(EXTI_Line14);
 	}
+    
+    if(EXTI_GetITStatus(EXTI_Line5) != RESET)
+	{
+		Fan_Exh_Count++;
+		/* Clear the EXTI line 14 pending bit */
+		EXTI_ClearITPendingBit(EXTI_Line5);
+	}
 }
 
 
@@ -113,14 +121,16 @@ int main(){
 
 	//Module seprate configuration
 	switch(ModuleMode){
+        case FLUX_ONE_EXTRUDER_REV1_MODULE:
+            Fan_Exhalation_RPM_IO_Config();
 		case FLUX_ONE_EXTRUDER_MODULE:
-			
+	
 			Fan_Exhalation_Config();
 	
 			Fan_Inhalation_Config();
 		
 			Fan_Inhalation_RPM_IO_Config();
-		
+        
 			delay_ms(50);//waiting for fan stable
 		
 			Heater_Config();
@@ -178,6 +188,9 @@ int main(){
 			case FLUX_LASER_MODULE:
 				printf("Laser\n");
 				break;
+            case FLUX_ONE_EXTRUDER_REV1_MODULE:	
+                printf("Extruder one REV1\n");
+				break;
 			case Unknow:
 				//could not recognize module type
 				printf("Unknow\n");
@@ -197,24 +210,27 @@ int main(){
 	
 		Xcode_Handler();
 		
-		if(ModuleMode==FLUX_ONE_EXTRUDER_MODULE){
-            Temperature_Manage();
-            PID_Handler(); 
-            Fan_Management();
-            Using_Time_Extruder_One_Record();
-		}else if(ModuleMode==FLUX_LASER_MODULE){
-            Debounce_Laser_Power();
-			Detect_Laser_Power();
-            Using_Time_Laser_Record();
-            
-		}
+        switch(ModuleMode){
+            case FLUX_ONE_EXTRUDER_MODULE:
+            case FLUX_ONE_EXTRUDER_REV1_MODULE:
+                Temperature_Manage();
+                PID_Handler(); 
+                Fan_Management();
+                Using_Time_Extruder_One_Record();
+                break;
+            case FLUX_LASER_MODULE:
+                Debounce_Laser_Power();
+                Detect_Laser_Power();
+                Using_Time_Laser_Record();
+                break;
+        }
         
 		Time_Count=millis()-LastTime;
 		if(Time_Count >= 60){
 			LastTime=millis();
 			if(Show_Sensor_Data)
 				Show_Sensor_RawData();
-			if(ModuleMode==FLUX_ONE_EXTRUDER_MODULE){
+			if(ModuleMode==FLUX_ONE_EXTRUDER_MODULE || ModuleMode==FLUX_ONE_EXTRUDER_REV1_MODULE){
 				NTC_ADC_Value=Read_ADC_Value(NTC_Channel);	
 				//printf("rtc value=%d\n",NTC_ADC_Value);
                 //NTC_Centigrade=(NTC_ADC_Value-183.8)/12.87742+24.0;

@@ -1,4 +1,5 @@
 #include <stdint.h>
+#define Temperature_Mapping_Reverse(i) Temperature_Mapping[4095-i] 
 const uint16_t Temperature_Mapping[4096] = {
 9999,
 9999,

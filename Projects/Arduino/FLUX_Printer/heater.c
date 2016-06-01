@@ -5,7 +5,7 @@
 #include "TemperatureMapping.h"
 #include "fan.h"
 #include "utilities.h"
-
+#include "defines.h"
 float Target_Temperature = 0.0;
 static uint32_t Last_PID_Time=0;
 static bool Auto_PID_Completed = FALSE;
@@ -50,6 +50,8 @@ float Current_Temperature;
 //For new PID method 
 float lastInput=0;
 
+extern ModuleMode_Type ModuleMode;
+
 //return heater temperature
 float Read_Temperature(void){
 	uint32_t ADC_Value=0;
@@ -61,9 +63,20 @@ float Read_Temperature(void){
 	}
 	
 	ADC_Value = ADC_Value/ADC_Sample_Times;
-
+    
 	if(ADC_Value >= 0 && ADC_Value <= 4095)
-		return ((float)Temperature_Mapping[ADC_Value])/10;
+        switch(ModuleMode){
+			case FLUX_ONE_EXTRUDER_MODULE:
+                return ((float)Temperature_Mapping[ADC_Value])/10;
+                break;
+            case FLUX_ONE_EXTRUDER_REV1_MODULE:
+                return ((float)Temperature_Mapping_Reverse(ADC_Value))/10;
+                break;
+            default:
+                return 999.9;
+                break;
+            
+        }
 	else
 		return 999.9;
 }
@@ -78,12 +91,12 @@ void PID_Handler(void){
     
     RT=Read_Temperature();
 	if(RT < Exhalation_Fan_Close_Temp){
-		Set_Exhalation_Fan_PWM(0);//close fan
+		Set_Exhalation_Fan_PWM_Mask(0);//close fan
 	}else{
-		Set_Exhalation_Fan_PWM(255);//close fan
+		Set_Exhalation_Fan_PWM_Mask(255);//close fan
 	}
 	
-	if(RT<0.001 || RT>900.0 || RT > Max_Temperature+10 || NTC_ADC_Value>416 || Get_Module_State(HEATER_FAILURE)){//Thermal res is short or open,583=55C 454=45C 416=42C
+	if(RT<0.001 || RT>900.0 || RT > Max_Temperature+10 || NTC_ADC_Value>583 || Get_Module_State(HEATER_FAILURE)){//Thermal res is short or open,583=55C 454=45C 416=42C
 		Set_Heater_PWM(0);
 		Set_Module_State(HARDWARE_ERROR);
 	}else if(Target_Temperature <= 0.001){
@@ -91,8 +104,8 @@ void PID_Handler(void){
         Reset_Module_State(HARDWARE_ERROR);
     }else{
         if(Auto_PID_Completed){
-		PID_Control();
-        Reset_Module_State(HARDWARE_ERROR);
+            PID_Control();
+            Reset_Module_State(HARDWARE_ERROR);
         }else{
             //if set Target_Temperature
             //PID_Autotune();

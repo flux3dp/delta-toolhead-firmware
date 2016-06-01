@@ -1,6 +1,6 @@
-#define Firmware_Version	"1.1.2"
+#define Firmware_Version	"1.2.1"
 #define Firmware_Name		"EXCALIBUR"//"TESTING"//
-#define Firmware_Date       "20160331"
+#define Firmware_Date       "20160601"
 #define STM32F0_UUID ((uint32_t *)0x1FFFF7AC)
 #define Enable_IWDG 1
 #define Enable_Debug_Msg 0
@@ -13,6 +13,7 @@ typedef enum
 	FLUX_ONE_EXTRUDER_MODULE,
 	FLUX_DUO_EXTRUDER_MODULE,
 	FLUX_LASER_MODULE,
+    FLUX_ONE_EXTRUDER_REV1_MODULE,//Compare to FLUX_ONE_EXTRUDER_MODULE:Inverting heater thermal temperature mapping¡B3 tires exhalation fan¡Bcorrespond factory test
 	Unknow
 }ModuleMode_Type;
 
@@ -31,5 +32,7 @@ Version history
 1.1.0   20160308    Add temperature management feature.
 1.1.1   20160311    Bug:Hardware failure cause error 512.
 1.1.2   20160314    Alter factory testing items.
+1.2.0   20160505    Replace heater thermal,add extruder one rev1.
+1.2.1   20160601    Change NTC upper temperature to 55C.
 
 */

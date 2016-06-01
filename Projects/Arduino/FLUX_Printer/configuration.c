@@ -28,10 +28,12 @@ void Module_Recognition(void){
 	ADC_Value=Read_ADC_Value(ID0_Channel);
 	
 	//read adc value to recognize module
-	if(ADC_Value >= Heater_ADC_Min_Value){
+	if(ADC_Value >= Extruder_One_ADC_Min_Value){
 		ModuleMode = FLUX_ONE_EXTRUDER_MODULE;
-	}else if(ADC_Value >= Laser_ADC_Min_Value && ADC_Value < Heater_ADC_Min_Value){
+	}else if(ADC_Value >= Laser_ADC_Min_Value && ADC_Value < Extruder_One_ADC_Min_Value){
 		ModuleMode = FLUX_LASER_MODULE;
+	}else if(ADC_Value >= Extruder_One_Rev1_ADC_Min_Value && ADC_Value < Laser_ADC_Min_Value){
+		ModuleMode = FLUX_ONE_EXTRUDER_REV1_MODULE;
 	}else{
 		//no such module
 		ModuleMode = Unknow;
@@ -289,6 +291,7 @@ void Fan_Exhalation_Config(void){
 	TIM_Cmd(TIM16, ENABLE);
 	TIM_CtrlPWMOutputs(TIM16, ENABLE);  
 	TIM16->CCR1 = 65535;
+    
 }
 
 void Fan_Inhalation_Config(void){
@@ -375,6 +378,31 @@ void Fan_Inhalation_RPM_IO_Config(void){
 
 	/* Configure EXTI14 line */
 	EXTI_InitStructure.EXTI_Line = EXTI_Line14;
+	EXTI_Init(&EXTI_InitStructure);
+
+}
+
+void Fan_Exhalation_RPM_IO_Config(void){
+	GPIO_InitTypeDef GPIO_InitStructure; 
+	EXTI_InitTypeDef   EXTI_InitStructure;
+	/* GPIOA Periph clock enable */
+	RCC_AHBPeriphClockCmd(RCC_AHBPeriph_GPIOA, ENABLE);
+	/* Enable SYSCFG clock */
+
+	//Config fan rpm reading GPIO PA5
+	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_5;
+	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN;
+	GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
+	GPIO_Init(GPIOA, &GPIO_InitStructure);
+	
+	/* Connect EXTI5 Line to PA5 pin */
+	SYSCFG_EXTILineConfig(EXTI_PortSourceGPIOA, EXTI_PinSource5);
+
+	/* Configure EXTI5 line */
+	EXTI_InitStructure.EXTI_Line = EXTI_Line5;  
+	EXTI_InitStructure.EXTI_Mode = EXTI_Mode_Interrupt;
+	EXTI_InitStructure.EXTI_Trigger = EXTI_Trigger_Falling;
+	EXTI_InitStructure.EXTI_LineCmd = ENABLE;
 	EXTI_Init(&EXTI_InitStructure);
 
 }
@@ -490,6 +518,7 @@ void Alarm_IO_Config(void){
 void Self_Test_IO_Config(void){
 	switch(ModuleMode){
 			case FLUX_ONE_EXTRUDER_MODULE:	
+            case FLUX_ONE_EXTRUDER_REV1_MODULE:
 				Extruder_One_Self_Test_IO_Config();
 				break;
 			case FLUX_DUO_EXTRUDER_MODULE:
