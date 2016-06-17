@@ -96,7 +96,7 @@ void Extruder_One_Cmd_Handler(void){
 
                     
 				}else{
-					sprintf(Response_Buffer,"1 ER PARAM_OUT_OF_RANGdE ");
+					sprintf(Response_Buffer,"1 ER PARAM_OUT_OF_RANGE ");
 				}
 		}else{
 			sprintf(Response_Buffer,"1 ER UNKNOW_COMMAND ");

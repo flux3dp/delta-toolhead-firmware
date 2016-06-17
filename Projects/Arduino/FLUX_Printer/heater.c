@@ -209,6 +209,7 @@ void Temperature_Manage(void){
         Temp_Error=Target_Temperature-Current_Temp;
 //        Last_Temp_Error=ABS_F(Target_Temperature-Last_Temp);
 //        Temp_Per_Second=(Current_Temp-Last_Temp)/interval*1000;
+        //⊿砞放but放ど
         if(Target_Temperature<0.01 && (Current_Temp-Last_Temp)>2){
             //Real temperature is rising but heater was closed.
             //printf("CurrT=%.2f\tLastT=%.2f\n",Current_Temp,Last_Temp);
@@ -216,7 +217,7 @@ void Temperature_Manage(void){
                 Set_Module_State(HARDWARE_ERROR);
                 Set_Module_State(HEATER_FAILURE);
             }
-            
+        //Τ砞放but放ど硉 < 1 /S
         }else if(Target_Temperature>0.01 && Temp_Error>PID_FUNCTIONAL_RANGE && (Current_Temp-Last_Temp)<1.0){
             //Running PID but ERROR is not convergency.
             //printf("CurrT=%.2f\tLastT=%.2f\n",Current_Temp,Last_Temp);
