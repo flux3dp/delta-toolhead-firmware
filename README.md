@@ -73,6 +73,18 @@ Note2:if TT:NAN that is target temperature had not been setted
 
 ⇠ `1 ER:512 HEATER_FAILURE\n` 
 
+⇠ `1 ER:1024 THERMAL_SHORT\n` 
+
+⇠ `1 ER:2048 THERMAL_OPEN\n` 
+
+⇠ `1 ER:4096 OVER_TEMPERATURE\n` 
+
+⇠ `1 ER:8192 NTC_OVER_TEMPERATURE\n` 
+
+⇠ `1 ER:16384 AUTO_HEAT\n` 
+
+⇠ `1 ER:32768 CANNOT_HEAT\n` 
+
 Note: ER are general error responses,all commands could respond,ER:1~128 are only responded by PONG.
 
 *ER:64 HARDWARE_ERROR
