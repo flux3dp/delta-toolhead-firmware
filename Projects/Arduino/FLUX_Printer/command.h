@@ -34,6 +34,13 @@ typedef enum
 	FAN_FAILURE			=128,
 	LASER_DOWN			=256,
     HEATER_FAILURE      =512,
+    THERMAL_SHORT       =1024,
+    THERMAL_OPEN        =2048,
+    OVER_TEMPERATURE    =4096,
+    NTC_OVER_TEMPERATURE=8192,
+    AUTO_HEAT           =16384,
+    CANNOT_HEAT         =32768,
+    
 }Module_State_Enum;
 
 //typedef struct

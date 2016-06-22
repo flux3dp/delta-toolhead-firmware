@@ -1,6 +1,6 @@
-#define Firmware_Version	"1.2.1"
-#define Firmware_Name		"EXCALIBUR"//"TESTING"//
-#define Firmware_Date       "20160601"
+#define Firmware_Version	"1.2.2"
+#define Firmware_Name		"TESTING"//"EXCALIBUR"//
+#define Firmware_Date       "20160621"
 #define STM32F0_UUID ((uint32_t *)0x1FFFF7AC)
 #define Enable_IWDG 1
 #define Enable_Debug_Msg 0
@@ -34,5 +34,5 @@ Version history
 1.1.2   20160314    Alter factory testing items.
 1.2.0   20160505    Replace heater thermal,add extruder one rev1.
 1.2.1   20160601    Change NTC upper temperature to 55C.
-
+1.2.2   20160621    Addtional error code of hardware error.
 */
