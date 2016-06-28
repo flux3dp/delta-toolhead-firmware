@@ -19,8 +19,10 @@
 
 const char Flux_Cmd_Header[] = "1"; //FLUX command header=1,user defined header=0;
 volatile uint32_t Module_State=0;
+volatile uint32_t Hardware_Error_Code=0;
 volatile bool Debug_Mode=FALSE;
 volatile bool Show_Sensor_Data=FALSE;
+char Error_Str[200]="";
 
 extern Six_Axis_Sensor_State_Type Six_Axis_Sensor_State;
 extern char buff_Uart1[100];//command data buffer
@@ -75,6 +77,41 @@ void Reset_Module_State(Module_State_Enum state){
 
 uint32_t Get_Module_State(Module_State_Enum state){
     return Module_State & ((uint32_t)state);
+}
+
+void Set_Hardware_Error_Code(Hardware_Error_Enum Code){
+	Hardware_Error_Code |= (uint32_t)Code;
+}
+
+void Reset_Hardware_Error_Code(Hardware_Error_Enum Code){
+	Hardware_Error_Code &= ~((uint32_t)Code);
+}
+
+uint32_t Get_Hardware_Error_Code(Hardware_Error_Enum Code){
+    return Hardware_Error_Code & ((uint32_t)Code);
+}
+
+char * Get_Hardware_Error_String(void){
+    Error_Str[0] = '\0';
+    if(Get_Hardware_Error_Code(THERMAL_SHORT)){
+        strcat(Error_Str,"THERMAL_SHORT,");
+    }
+    if(Get_Hardware_Error_Code(THERMAL_OPEN)){
+        strcat(Error_Str,"THERMAL_OPEN,");
+    }
+    if(Get_Hardware_Error_Code(OVER_TEMPERATURE)){
+        strcat(Error_Str,"OVER_TEMP,");
+    }
+    if(Get_Hardware_Error_Code(NTC_OVER_TEMPERATURE)){
+        strcat(Error_Str,"NTC_OVER_TEMP,");
+    }
+    if(Get_Hardware_Error_Code(AUTO_HEAT)){
+        strcat(Error_Str,"AUTO_HEAT,");
+    }
+    if(Get_Hardware_Error_Code(CANNOT_HEAT)){
+        strcat(Error_Str,"CANNOT_HEAT,");
+    }
+    return Error_Str;
 }
 
 void Xcode_Handler(void){

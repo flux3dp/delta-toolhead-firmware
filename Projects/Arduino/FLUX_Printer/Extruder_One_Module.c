@@ -60,7 +60,7 @@ void Extruder_One_Cmd_Handler(void){
 			sprintf(Response_Buffer,"%s%s",Response_Buffer,"TT:NAN ");
 		else
 			sprintf(Response_Buffer,"%sTT:%.1lf ",Response_Buffer,Target_Temperature);
-		sprintf(Response_Buffer,"%sFA:%d ",Response_Buffer,Read_Inhalation_Fan_Mask_PWM());
+		sprintf(Response_Buffer,"%sFA:%d HE:%s ",Response_Buffer,Read_Inhalation_Fan_Mask_PWM(),Get_Hardware_Error_String());
 		
 		//reset sensor state
 		Reset_Axis_Sensor_State();

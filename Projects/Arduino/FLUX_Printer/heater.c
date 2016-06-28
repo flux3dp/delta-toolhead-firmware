@@ -15,9 +15,6 @@ static uint32_t T_Manage_Last_Time=0;
 static uint32_t T_Manage_Mask_Time=0;
 static float Last_Temp=0;
 
-static float Last_Error=-999;
-static uint32_t Heater_Monitor_Last_Time=0;
-
 uint16_t NTC_ADC_Value=0;
 float NTC_Centigrade=0;
 //For PID_Control
@@ -68,13 +65,10 @@ float Read_Temperature(void){
         switch(ModuleMode){
 			case FLUX_ONE_EXTRUDER_MODULE:
                 return ((float)Temperature_Mapping[ADC_Value])/10;
-                break;
             case FLUX_ONE_EXTRUDER_REV1_MODULE:
                 return ((float)Temperature_Mapping_Reverse(ADC_Value))/10;
-                break;
             default:
                 return 999.9;
-                break;
             
         }
 	else
@@ -96,33 +90,33 @@ void PID_Handler(void){
 		Set_Exhalation_Fan_PWM_Mask(255);//close fan
 	}
 	
-	if(RT<0.001 || RT>900.0 || RT > Max_Temperature+10 || NTC_ADC_Value>583 || Get_Module_State(AUTO_HEAT)){//Thermal res is short or open,583=55C 454=45C 416=42C
+	if(RT<0.001 || RT>900.0 || RT > Max_Temperature+10 || NTC_ADC_Value>583 || Get_Hardware_Error_Code(AUTO_HEAT)){//Thermal res is short or open,583=55C 454=45C 416=42C
 		Set_Heater_PWM(0);
 		Set_Module_State(HARDWARE_ERROR);
         if(RT<0.001)
-            Set_Module_State(THERMAL_OPEN);
+            Set_Hardware_Error_Code(THERMAL_OPEN);
         else if(RT>900.0)
-            Set_Module_State(THERMAL_SHORT);
+            Set_Hardware_Error_Code(THERMAL_SHORT);
         else if(RT > Max_Temperature+10)
-            Set_Module_State(OVER_TEMPERATURE);
+            Set_Hardware_Error_Code(OVER_TEMPERATURE);
         else if(NTC_ADC_Value>583)
-            Set_Module_State(NTC_OVER_TEMPERATURE);
+            Set_Hardware_Error_Code(NTC_OVER_TEMPERATURE);
 	}else if(Target_Temperature <= 0.001){
         Set_Heater_PWM(0);
         Reset_Module_State(HARDWARE_ERROR);
-        Reset_Module_State(THERMAL_OPEN);
-        Reset_Module_State(THERMAL_SHORT);
-        Reset_Module_State(OVER_TEMPERATURE);
-        Reset_Module_State(NTC_OVER_TEMPERATURE);
+        Reset_Hardware_Error_Code(THERMAL_OPEN);
+        Reset_Hardware_Error_Code(THERMAL_SHORT);
+        Reset_Hardware_Error_Code(OVER_TEMPERATURE);
+        Reset_Hardware_Error_Code(NTC_OVER_TEMPERATURE);
         
     }else{
         if(Auto_PID_Completed){
             PID_Control();
             Reset_Module_State(HARDWARE_ERROR);
-            Reset_Module_State(THERMAL_OPEN);
-            Reset_Module_State(THERMAL_SHORT);
-            Reset_Module_State(OVER_TEMPERATURE);
-            Reset_Module_State(NTC_OVER_TEMPERATURE);
+            Reset_Hardware_Error_Code(THERMAL_OPEN);
+            Reset_Hardware_Error_Code(THERMAL_SHORT);
+            Reset_Hardware_Error_Code(OVER_TEMPERATURE);
+            Reset_Hardware_Error_Code(NTC_OVER_TEMPERATURE);
         }else{
             //if set Target_Temperature
             //PID_Autotune();
@@ -209,9 +203,8 @@ void Disable_All_Heater(void){
 
 void Temperature_Manage(void){
     float Current_Temp;
-    float Temp_Error,Last_Temp_Error;
+    float Temp_Error;
     uint32_t interval=0;
-    float Temp_Per_Second;
     
     if(millis()-T_Manage_Mask_Time<20000)
         return;
@@ -224,8 +217,6 @@ void Temperature_Manage(void){
         }
         Current_Temp=Read_Temperature();
         Temp_Error=Target_Temperature-Current_Temp;
-//        Last_Temp_Error=ABS_F(Target_Temperature-Last_Temp);
-//        Temp_Per_Second=(Current_Temp-Last_Temp)/interval*1000;
         //⊿砞放but放ど
         if(Target_Temperature<0.01 && (Current_Temp-Last_Temp)>2){
             //Real temperature is rising but heater was closed.
@@ -233,7 +224,7 @@ void Temperature_Manage(void){
             if(!Get_Module_State(HARDWARE_ERROR)){
                 Set_Module_State(HARDWARE_ERROR);
                 Set_Module_State(HEATER_FAILURE);
-                Set_Module_State(AUTO_HEAT);
+                Set_Hardware_Error_Code(AUTO_HEAT);
             }
         //Τ砞放but放ど硉 < 1 /S
         }else if(Target_Temperature>0.01 && Temp_Error>PID_FUNCTIONAL_RANGE && (Current_Temp-Last_Temp)<1.0){
@@ -242,12 +233,12 @@ void Temperature_Manage(void){
             if(!Get_Module_State(HARDWARE_ERROR)){
                 Set_Module_State(HARDWARE_ERROR);
                 Set_Module_State(HEATER_FAILURE);
-                Set_Module_State(CANNOT_HEAT);
+                Set_Hardware_Error_Code(CANNOT_HEAT);
             }
         }else{
             Reset_Module_State(HEATER_FAILURE);
-            Reset_Module_State(AUTO_HEAT);
-            Reset_Module_State(CANNOT_HEAT);
+            Reset_Hardware_Error_Code(AUTO_HEAT);
+            Reset_Hardware_Error_Code(CANNOT_HEAT);
         }
         
         //printf("%.2f C/S\n",(Current_Temp-Last_Temp)/interval*1000);

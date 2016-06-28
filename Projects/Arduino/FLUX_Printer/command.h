@@ -34,6 +34,11 @@ typedef enum
 	FAN_FAILURE			=128,
 	LASER_DOWN			=256,
     HEATER_FAILURE      =512,
+    
+}Module_State_Enum;
+
+typedef enum
+{
     THERMAL_SHORT       =1024,
     THERMAL_OPEN        =2048,
     OVER_TEMPERATURE    =4096,
@@ -41,7 +46,7 @@ typedef enum
     AUTO_HEAT           =16384,
     CANNOT_HEAT         =32768,
     
-}Module_State_Enum;
+}Hardware_Error_Enum;
 
 //typedef struct
 //{
@@ -75,6 +80,14 @@ void Set_Module_State(Module_State_Enum state);
 void Reset_Module_State(Module_State_Enum state);
 
 uint32_t Get_Module_State(Module_State_Enum state);
+
+void Set_Hardware_Error_Code(Hardware_Error_Enum Code);
+
+void Reset_Hardware_Error_Code(Hardware_Error_Enum Code);
+
+uint32_t Get_Hardware_Error_Code(Hardware_Error_Enum Code);
+
+char * Get_Hardware_Error_String(void);
 
 bool Cmd_Checksum_Validation(char * Cmd_Data,uint16_t Length);
 

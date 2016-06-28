@@ -55,7 +55,7 @@ void Extruder_One_Rev1_Cmd_Handler(void){
 			Set_Module_State(FAN_FAILURE);
 		
 		//response
-		sprintf(Response_Buffer,"1 OK PONG ER:%d RT:%.1lf ",Module_State,Read_Temperature());
+		sprintf(Response_Buffer,"1 OK PONG ER:%d HE:%s RT:%.1lf ",Module_State,Get_Hardware_Error_String(),Read_Temperature());
 		if(Target_Temperature<0.1)
 			sprintf(Response_Buffer,"%s%s",Response_Buffer,"TT:NAN ");
 		else

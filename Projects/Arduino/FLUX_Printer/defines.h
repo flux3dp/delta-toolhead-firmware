@@ -1,6 +1,6 @@
 #define Firmware_Version	"1.2.2"
-#define Firmware_Name		"TESTING"//"EXCALIBUR"//
-#define Firmware_Date       "20160621"
+#define Firmware_Name		"EXCALIBUR"//"TESTING"//
+#define Firmware_Date       "20160622"
 #define STM32F0_UUID ((uint32_t *)0x1FFFF7AC)
 #define Enable_IWDG 1
 #define Enable_Debug_Msg 0
