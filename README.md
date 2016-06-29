@@ -88,7 +88,7 @@ Note2:if TT:NAN that is target temperature had not been setted
 ⇠ `CANNOT_HEAT` 
 
 e.g 
-⇠ `1 OK PONG ER:64 RT:123.3 TT:200.0 FA:255 HE:OVER_TEMP,AUTO_HEAT *[CHKSUM]\n` (for extruder)
+⇠ `1 OK PONG ER:64 RT:383.3 TT:200.0 FA:255 HE:OVER_TEMP,AUTO_HEAT *[CHKSUM]\n` (for extruder)
 
 Note: ER are general error responses,all commands could respond,ER:1~128 are only responded by PONG.
 
