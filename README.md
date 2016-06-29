@@ -79,7 +79,7 @@ Note2:if TT:NAN that is target temperature had not been setted
 
 ⇠ `THERMAL_OPEN` 
 
-⇠ `OVER_TEMPE` 
+⇠ `OVER_TEMP` 
 
 ⇠ `NTC_OVER_TEMP` 
 
