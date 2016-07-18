@@ -1,0 +1,115 @@
+
+#include <string> 
+#define COMMAND_NOT_FOUND   ""
+#define COMMAND_HELLO       "HELLO"
+#define COMMAND_PING        "PING"
+String Receive_String = "";
+void commandHandler(void);
+
+
+void setup()
+{
+	Serial.begin(115200);
+}
+
+void loop()
+{
+	commandHandler();
+}
+bool commandValidate(String str) {
+	uint8_t checksum = 0;
+	String strTemp = "";
+	int dataLen = 0;
+	for (int strPtr = str.length() - 1; strPtr >= 0; strPtr--) {
+		if (str.charAt(strPtr) == '*'){
+			strTemp = str.substring(0, strPtr - 1);
+			while (dataLen<strPtr) {
+				checksum = checksum^str.charAt(dataLen++);
+			}
+			break;
+		}
+	}
+    Serial.println(checksum);
+    Serial.println(getChecksum(str));
+    Serial.println(getChecksum(str) == checksum);
+	if (getChecksum(str) == checksum)
+		return true;
+	else
+		return false;
+
+}
+
+uint8_t getChecksum(String str) {
+	for (int strPtr = str.length()-1; strPtr >=0 ; strPtr--) {
+		if (str.charAt(strPtr) == '*')
+			return atoi((str.substring(strPtr + 1).c_str()));
+	}
+}
+
+String getCommand(String str) {
+    uint8_t pos;
+    for (int strPtr = 2; strPtr < str.length() - 1; strPtr++) {
+        if (str.charAt(strPtr) == ' ') {
+            pos = strPtr;
+            return str.substring(2,pos);
+        }   
+    }
+    return "";
+}
+bool isCommand(String recCommand, String myCommnad) {
+    if(recCommand.compareTo(myCommnad)==0)
+        return true;
+    else
+        return false;
+}
+
+void commandHandler(void) {
+	String recString, recCommand;
+	char Response_Buffer[200];
+	
+	recString = readLine();
+	if (recString.compareTo("") != 0) {
+		if (!commandValidate(recString))
+			return;
+        else
+            recCommand = getCommand(recString);
+    }
+    else {
+        return;
+    }
+    Serial.println(recCommand);
+	if (isCommand(recCommand, COMMAND_HELLO)) {
+		Serial.println("hello");
+	}
+	else if (isCommand(recCommand, COMMAND_PING)) {
+		Serial.println("PING");
+
+	}
+	else if (recString.compareTo("") != 0) {	
+	}
+}
+
+
+String readLine() {
+	char getC;
+	String res = "";
+	if (Serial.available() > 0) {
+        getC = Serial.read();
+		if (Receive_String.compareTo("") == 0 && getC == '1') {
+			Receive_String.concat('1');
+		}
+		else if (getC != '\n') {
+			if (getC != '\r')
+				Receive_String.concat(char(toUpperCase(getC)));
+		}
+		else if (getC == '\n') {
+			res = Receive_String;
+			Receive_String = "";
+			return res;
+		}
+		return "";
+	}
+	else {
+		return "";
+	}
+}
