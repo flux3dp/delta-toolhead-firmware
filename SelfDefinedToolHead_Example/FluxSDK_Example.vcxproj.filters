@@ -24,6 +24,9 @@
     <ClInclude Include="Command.h">
       <Filter>標頭檔</Filter>
     </ClInclude>
+    <ClInclude Include="__vm\.SelfDefinedToolHead_Example.vsarduino.h">
+      <Filter>標頭檔</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Command.cpp">

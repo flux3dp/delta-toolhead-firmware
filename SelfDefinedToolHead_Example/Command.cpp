@@ -18,13 +18,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "Command.h"
 
-CommandClass::CommandClass(Serial_ commandPort,unsigned long baudrate)
+CommandClass::CommandClass(HardwareSerial *commandPort)
 {
     recBuff = "";
     recString = "";
     commandPtr = 0;
     serialPort = commandPort;
-    serialPort.begin(baudrate);
+    serialPort->begin(115200);
 }
 
 /**
@@ -44,26 +44,26 @@ void CommandClass::commandHandler(void) {
     if (codeSeen(COMMAND_HELLO)) {
         sprintf(sendBack, "1 OK HELLO TYPE:USER/MYTOOLHEAD ID:0000 VENDOR:BANANA VERSION : 0.0.1 ");
         sprintf(sendBack, "%s*%d", sendBack, getChecksum(sendBack));
-        serialPort.println(sendBack);
+        serialPort->println(sendBack);
     }
     else if (codeSeen(COMMAND_PING)) {
         sprintf(sendBack, "1 OK PONG ER:0 ");
         sprintf(sendBack, "%s*%d", sendBack, getChecksum(sendBack));
-        serialPort.println(sendBack);
+        serialPort->println(sendBack);
     }
     else if (codeSeen(COMMAND_SET_LED)) {
         uint8_t ledPWM=codeValueShort();
         analogWrite(10,ledPWM);
         sprintf(sendBack, "1 OK ");
         sprintf(sendBack, "%s*%d", sendBack, getChecksum(sendBack));
-        serialPort.println(sendBack);
+        serialPort->println(sendBack);
     }
     else if (codeSeen(COMMNAD_DIGITALREAD)) {
         uint8_t pin = codeValueShort();
         int pinState = digitalRead(pin);
         sprintf(sendBack, "1 OK %d ", pinState);
         sprintf(sendBack, "%s*%d", sendBack, getChecksum(sendBack));
-        serialPort.println(sendBack);
+        serialPort->println(sendBack);
     }
     else if (codeSeen(COMMAND_DIGITALWRITE)) {
         uint8_t pin = codeValueShort();
@@ -71,7 +71,7 @@ void CommandClass::commandHandler(void) {
             digitalWrite(pin,codeValueShort());
         sprintf(sendBack, "1 OK ");
         sprintf(sendBack, "%s*%d", sendBack, getChecksum(sendBack));
-        serialPort.println(sendBack);
+        serialPort->println(sendBack);
     }
 }
 
@@ -173,8 +173,8 @@ int16_t CommandClass::codeValueShort(void) {
 */
 bool CommandClass::readLine(void) {
     char getC;
-    if (serialPort.available() > 0) {
-        getC = serialPort.read();
+    if (serialPort->available() > 0) {
+        getC = serialPort->read();
         if (recBuff.compareTo("") == 0 && getC == '1') {
             recBuff.concat('1');
         }

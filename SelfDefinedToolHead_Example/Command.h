@@ -45,9 +45,9 @@ class CommandClass
      String recBuff;
      String recString;
      int commandPtr;
-     Serial_ serialPort;
+     HardwareSerial *serialPort;
  public:
-	CommandClass(Serial_ commandPort, unsigned long baudrate);
+	CommandClass(HardwareSerial *commandPort);
     void commandHandler(void);
  protected:
      bool readLine(void);

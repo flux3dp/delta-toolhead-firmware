@@ -17,10 +17,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #include "Command.h"
-CommandClass myCommand(Serial,115200);
+CommandClass myCommand(&Serial1);
 void setup()
 {
-    
+
 }
 
 void loop()
