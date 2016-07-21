@@ -175,6 +175,7 @@ bool CommandClass::readLine(void) {
     char getC;
     if (serialPort->available() > 0) {
         getC = serialPort->read();
+        Serial.print(getC);
         if (recBuff.compareTo("") == 0 && getC == '1') {
             recBuff.concat('1');
         }

@@ -20,7 +20,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 CommandClass myCommand(&Serial1);
 void setup()
 {
-
+  Serial.begin(115200);
 }
 
 void loop()
