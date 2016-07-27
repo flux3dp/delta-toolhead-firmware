@@ -1,4 +1,4 @@
-﻿## Self-defined toolhead example
+## Self-defined toolhead example
 **Introduction**
 
 This example is for self-defined toolhead, which develops by using [arduino leonardo](https://www.arduino.cc/en/Main/ArduinoBoardLeonardo), you can use any 
@@ -14,7 +14,7 @@ There are files to interact with FluxSDK:
 
 > Connects the Flux delta's extension port "TX" & "RX" to the arduino leonardo "RX1" & "TX1",also the power(3.3v) and ground.
 
-> ![Flux delta extension port](https://github.com/flux3dp/PrinterHead/blob/master/SelfDefinedToolHead_Example/doc/pics/Extension%20Port%20Graphics.png)
+> ![Flux delta extension port](https://github.com/flux3dp/PrinterHead/blob/master/selfdefinedtoolhead_example/doc/pics/Extension%20Port%20Graphics.png)
 
 > ![](https://www.arduino.cc/en/uploads/Main/ArduinoLeonardoFront_2.jpg)
 
