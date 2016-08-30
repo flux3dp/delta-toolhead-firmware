@@ -127,7 +127,9 @@ void Extruder_One_Cmd_Handler(void){
 			sprintf(Response_Buffer,"1 ER UNKNOW_COMMAND ");
 		}
 		
-	}else{
+	}else if(!strcmp(Command_Str, "GET_TEMP_ADC")){ 
+        sprintf(Response_Buffer,"1 OK TEMP_ADC=\t%u ",ADC_GetConversionValue(ADC1));
+    }else{
 		sprintf(Response_Buffer,"1 ER UNKNOW_COMMAND ");
 	}
 	

@@ -548,7 +548,8 @@ static bool Test_Six_Axis_Sensor_Calibration(void){
 }
 
 static uint32_t Test_Thermal_Analog_Read(void){
-	if(Read_Temperature()<0.0001)
+    float RT=Read_Temperature();
+	if(RT<0.0001 || RT>900.0)
 		return 16;
 	else
 		return 0;
@@ -566,7 +567,7 @@ static uint32_t Test_Heater_Output(void){
 static uint32_t Test_NTC(void){
 	uint16_t ADC_Value=Read_ADC_Value(NTC_Channel);
 
-	if(ADC_Value>83 && ADC_Value<283)
+	if(ADC_Value>68 && ADC_Value<283) //15.c ~ 30.36.c
 		return 64;
 	else
 		return 0;
