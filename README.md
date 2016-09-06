@@ -36,6 +36,17 @@
 
 1.2.4   20160831    Change heater output factory test for extruder R1.
 
+**Hardware version**
+
+ID1    ID0
+
+4090   3212
+
+4090   2409
+
+4090   1945
+
+5      1945       
 
 **Printer head firmware protocol**
 
