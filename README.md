@@ -36,6 +36,8 @@
 
 1.2.4   20160831    Change heater output factory test for extruder R1.
 
+1.2.5   20160907    Add new hardware extruder one R2 & self-reset alarm.
+
 **Hardware version**
 
 ID1    ID0
@@ -122,6 +124,8 @@ Note2:if TT:NAN that is target temperature had not been setted
 ⇠ `1 ER:256 LASER_DOWN\n` 
 
 ⇠ `1 ER:512 HEATER_FAILURE\n` 
+
+⇠ `1 ER:1024 SELF_RESET\n` 
 
 * Hardware Error
 
