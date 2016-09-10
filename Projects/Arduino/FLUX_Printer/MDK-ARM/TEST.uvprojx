@@ -626,6 +626,11 @@
               <FileType>1</FileType>
               <FilePath>..\Extruder_One_Rev1_Module.c</FilePath>
             </File>
+            <File>
+              <FileName>Extruder_One_Rev2_Module.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Extruder_One_Rev2_Module.c</FilePath>
+            </File>
           </Files>
         </Group>
       </Groups>

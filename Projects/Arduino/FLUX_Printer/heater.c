@@ -66,6 +66,7 @@ float Read_Temperature(void){
 			case FLUX_ONE_EXTRUDER_MODULE:
                 return ((float)Temperature_Mapping[ADC_Value])/10;
             case FLUX_ONE_EXTRUDER_REV1_MODULE:
+            case FLUX_ONE_EXTRUDER_REV2_MODULE:
                 return ((float)Temperature_Mapping_Reverse(ADC_Value))/10;
             default:
                 return 999.9;

@@ -34,6 +34,7 @@ typedef enum
 	FAN_FAILURE			=128,
 	LASER_DOWN			=256,
     HEATER_FAILURE      =512,
+    SELF_RESET          =1024,
     
 }Module_State_Enum;
 

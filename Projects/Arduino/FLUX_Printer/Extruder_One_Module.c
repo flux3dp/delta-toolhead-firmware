@@ -66,6 +66,8 @@ void Extruder_One_Cmd_Handler(void){
 		Reset_Axis_Sensor_State();
 		//reset alarm IO
 		Alarm_Off();
+        //reset SELF_RESET
+        Reset_Module_State(SELF_RESET);
 	}else if(!strcmp(Command_Str, "H:0")){
 		Command_Str = strtok(NULL, " ");
 		if(Command_Str[0]=='T' && Command_Str[1]==':'){

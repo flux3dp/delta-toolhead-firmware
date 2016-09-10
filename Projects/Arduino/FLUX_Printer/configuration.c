@@ -23,17 +23,21 @@ void Module_Initial(void){
 }
 
 void Module_Recognition(void){
-	uint16_t ADC_Value;
+	uint16_t ADC_Value_ID0,ADC_Value_ID1;
 	ADC_Config();	//config all ADC
-	ADC_Value=Read_ADC_Value(ID0_Channel);
-	
+	ADC_Value_ID0=Read_ADC_Value(ID0_Channel);
+	ADC_Value_ID1=Read_ADC_Value(ID1_Channel);
+    
 	//read adc value to recognize module
-	if(ADC_Value >= Extruder_One_ADC_Min_Value){
+	if(ADC_Value_ID0 >= Extruder_One_ADC_Min_Value){
 		ModuleMode = FLUX_ONE_EXTRUDER_MODULE;
-	}else if(ADC_Value >= Laser_ADC_Min_Value && ADC_Value < Extruder_One_ADC_Min_Value){
+	}else if(ADC_Value_ID0 >= Laser_ADC_Min_Value && ADC_Value_ID0 < Extruder_One_ADC_Min_Value){
 		ModuleMode = FLUX_LASER_MODULE;
-	}else if(ADC_Value >= Extruder_One_Rev1_ADC_Min_Value && ADC_Value < Laser_ADC_Min_Value){
-		ModuleMode = FLUX_ONE_EXTRUDER_REV1_MODULE;
+	}else if(ADC_Value_ID0 >= Extruder_One_Rev1_ADC_Min_Value && ADC_Value_ID0 < Laser_ADC_Min_Value){
+        if(ADC_Value_ID1>4080)
+            ModuleMode = FLUX_ONE_EXTRUDER_REV1_MODULE;
+		else
+            ModuleMode = FLUX_ONE_EXTRUDER_REV2_MODULE;
 	}else{
 		//no such module
 		ModuleMode = Unknow;
@@ -519,6 +523,7 @@ void Self_Test_IO_Config(void){
 	switch(ModuleMode){
 			case FLUX_ONE_EXTRUDER_MODULE:	
             case FLUX_ONE_EXTRUDER_REV1_MODULE:
+            case FLUX_ONE_EXTRUDER_REV2_MODULE:
 				Extruder_One_Self_Test_IO_Config();
 				break;
 			case FLUX_DUO_EXTRUDER_MODULE:

@@ -68,6 +68,8 @@ void Laser_Cmd_Handler(void){
 		Reset_Axis_Sensor_State();
 		//reset alarm IO
 		Alarm_Off();
+        //reset SELF_RESET
+        Reset_Module_State(SELF_RESET);
 	}else if(!strcmp(Command_Str, "WRITE")){
 		float Float_Temp;
 		Command_Str = strtok(NULL, " ");

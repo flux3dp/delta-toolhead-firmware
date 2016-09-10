@@ -8,7 +8,7 @@
   ******************************************************************************
   * @attention
   *
-  * <h2><center>&copy; COPYRIGHT 2016 Flux</center></h2>
+  * <h2><center>&copy; COPYRIGHT 2016 FLUX</center></h2>
   *
   *
   ******************************************************************************
@@ -124,7 +124,7 @@ int main(){
         case FLUX_ONE_EXTRUDER_REV1_MODULE:
             Fan_Exhalation_RPM_IO_Config();
 		case FLUX_ONE_EXTRUDER_MODULE:
-	
+	    case FLUX_ONE_EXTRUDER_REV2_MODULE:
 			Fan_Exhalation_Config();
 	
 			Fan_Inhalation_Config();
@@ -191,6 +191,9 @@ int main(){
             case FLUX_ONE_EXTRUDER_REV1_MODULE:	
                 printf("Extruder one REV1\n");
 				break;
+            case FLUX_ONE_EXTRUDER_REV2_MODULE:	
+                printf("Extruder one REV2\n");
+				break;
 			case Unknow:
 				//could not recognize module type
 				printf("Unknow\n");
@@ -213,6 +216,7 @@ int main(){
         switch(ModuleMode){
             case FLUX_ONE_EXTRUDER_MODULE:
             case FLUX_ONE_EXTRUDER_REV1_MODULE:
+            case FLUX_ONE_EXTRUDER_REV2_MODULE:
                 Temperature_Manage();
                 PID_Handler(); 
                 Fan_Management();
@@ -276,6 +280,7 @@ static void Feed_WatchDog(void){
 		if(RCC_GetFlagStatus(RCC_FLAG_IWDGRST) == SET)
 		{
 			//printf("The Stm32 has been reset by IWDG.\r\n");
+            Set_Module_State(SELF_RESET);
 			RCC_ClearFlag();
 		}
 		IWDG_ReloadCounter();//feed the watch dog or it will bite u after 800ms

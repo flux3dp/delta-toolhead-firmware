@@ -11,6 +11,7 @@
 #include "LaserModule.h"
 #include "Extruder_One_Module.h"
 #include "Extruder_One_Rev1_Module.h"
+#include "Extruder_One_Rev2_Module.h"
 #include "Extruder_Duo_Module.h"
 #include "Unknow_Module.h"
 #include "Six_Axis_Sensor.h"
@@ -124,6 +125,7 @@ void Xcode_Handler(void){
 		switch(ModuleMode){
 			case FLUX_ONE_EXTRUDER_MODULE:
             case FLUX_ONE_EXTRUDER_REV1_MODULE:
+            case FLUX_ONE_EXTRUDER_REV2_MODULE:
 				if(CmdTimeout_count>Extruder_Cmd_Timeout)
 					Set_Temperature(0);
 					if(Read_Temperature()<0.1)
@@ -193,6 +195,10 @@ void Xcode_Handler(void){
 				break;
             case FLUX_ONE_EXTRUDER_REV1_MODULE:
                 Extruder_One_Rev1_Cmd_Handler();
+				CmdTimeout_count=0;
+                break;
+            case FLUX_ONE_EXTRUDER_REV2_MODULE:
+                Extruder_One_Rev2_Cmd_Handler();
 				CmdTimeout_count=0;
                 break;
 			case Unknow:
@@ -393,6 +399,9 @@ void Self_Test(void){
             case FLUX_ONE_EXTRUDER_REV1_MODULE:
                 Test_Extruder_One();
                 break;
+            case FLUX_ONE_EXTRUDER_REV2_MODULE:
+                Test_Extruder_One();
+                break;
 			default:
 				//could not recognize module type
 				printf ("%08X%08X%08X 00 %s\n",UUID[2],UUID[1],UUID[0],"0");
@@ -405,17 +414,19 @@ static void Test_Extruder_One(void){
 	char buffer [33];
 	char *binResult;
 	
-	Test_Result+=Test_Alarm_IO();
-	Test_Result+=Test_Sensor_RW();
-	Test_Result+=Test_Acceler_Range();
-	Test_Result+=8;//Test_Gyro_Range();
-	
-	Test_Result+=Test_Heater_Output();
+	Test_Result+=Test_Alarm_IO();   //1
+	Test_Result+=Test_Sensor_RW();  //2
+	Test_Result+=Test_Acceler_Range();//4
+	Test_Result+=8;//Test_Gyro_Range();//8
+	if(ModuleMode==FLUX_ONE_EXTRUDER_REV1_MODULE || ModuleMode==FLUX_ONE_EXTRUDER_REV2_MODULE)
+        Test_Result+=32;//32
+	else
+        Test_Result+=Test_Heater_Output();//32
 	//Test_Result+=Test_Fan1_IO();
-	Test_Result+=Test_NTC();
-	Test_Result+=Test_Fan2_IO();
+	Test_Result+=Test_NTC();        //64
+	Test_Result+=Test_Fan2_IO();    //128
 	delay_ms(500);
-	Test_Result+=Test_Thermal_Analog_Read();
+	Test_Result+=Test_Thermal_Analog_Read();//16
 	
 	binResult=int2binStr(Test_Result,buffer);
 	printf ("%08X%08X%08X 10 %s\n",UUID[2],UUID[1],UUID[0],binResult);
@@ -566,8 +577,7 @@ static uint32_t Test_Heater_Output(void){
 
 static uint32_t Test_NTC(void){
 	uint16_t ADC_Value=Read_ADC_Value(NTC_Channel);
-
-	if(ADC_Value>68 && ADC_Value<283) //15.c ~ 30.36.c
+	if(ADC_Value>68 && ADC_Value<283) //15.c ~ 30.36.c (68-183.8)/12.87742+24.0
 		return 64;
 	else
 		return 0;
