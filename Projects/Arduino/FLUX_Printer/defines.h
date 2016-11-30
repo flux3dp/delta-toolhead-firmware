@@ -1,6 +1,6 @@
-#define Firmware_Version	"1.2.5"
-#define Firmware_Name		"EXCALIBUR"//"TESTING"//
-#define Firmware_Date       "20160907"
+#define Firmware_Version	"1.2.8"
+#define Firmware_Name		"EXCALIBUR"//"TESTING_ntc_sampling"//
+#define Firmware_Date       "20161123"
 #define STM32F0_UUID ((uint32_t *)0x1FFFF7AC)
 #define Enable_IWDG 1
 #define Enable_Debug_Msg 0
@@ -35,8 +35,11 @@ Version history
 1.1.2   20160314    Alter factory testing items.
 1.2.0   20160505    Replace heater thermal,add extruder one rev1.
 1.2.1   20160601    Change NTC upper temperature to 55C.
-1.2.2   20160621    Addtional error code of hardware error.
+1.2.2   20160621    Addtional error code of hardware error. <-*
 1.2.3   20160830    Change NTC factory test temperature.
 1.2.4   20160831    Change heater output factory test for extruder R1.
-1.2.5   20160907    Add new hardware extruder one R2.
+1.2.5   20160907    Add new hardware extruder one R2 & self-reset alarm.
+1.2.6   20160929    Revise: if HARDWARE_ERROR has not appeared , it would not response "HE: " with PING command.
+1.2.7   20161006    NTC sampling.
+1.2.8   20161123    Revise hello command messages for new extruder hardware.
 */

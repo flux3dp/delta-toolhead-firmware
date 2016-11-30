@@ -16,6 +16,8 @@ static uint32_t T_Manage_Mask_Time=0;
 static float Last_Temp=0;
 
 uint16_t NTC_ADC_Value=0;
+uint32_t NTC_ADC_Value_Sampling=0;
+
 float NTC_Centigrade=0;
 //For PID_Control
 static float Kp=Kp_Default;

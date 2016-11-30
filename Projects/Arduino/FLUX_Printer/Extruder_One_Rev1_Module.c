@@ -41,12 +41,12 @@ void Extruder_One_Rev1_Cmd_Handler(void){
 		Debug_Mode=FALSE;
 		Show_Sensor_Data=FALSE;
 		Reset_Module_State(NO_HELLO);
-		sprintf(Response_Buffer,"1 OK HELLO TYPE:EXTRUDER ID:%08X%08X%08X VENDOR:%s FIRMWARE:%s VERSION:%s EXTRUDER:1R MAX_TEMPERATURE:%.1lf USED:%u ",UUID[2],UUID[1],UUID[0],Vender,Firmware_Name,Firmware_Version,Max_Temperature,Read_Using_Time());
+		sprintf(Response_Buffer,"1 OK HELLO TYPE:EXTRUDER ID:%08X%08X%08X VENDOR:%s FIRMWARE:%s VERSION:%s EXTRUDER:1 HARDWARE_VERSION:1 MAX_TEMPERATURE:%.1lf USED:%u ",UUID[2],UUID[1],UUID[0],Vender,Firmware_Name,Firmware_Version,Max_Temperature,Read_Using_Time());
 
 	}else if(!strcmp(Command_Str, "DEBUG")){
 		Debug_Mode=TRUE;
 		Reset_Module_State(NO_HELLO);
-		sprintf(Response_Buffer,"1 OK HELLO TYPE:EXTRUDER ID:%08X%08X%08X VENDOR:%s FIRMWARE:%s VERSION:%s EXTRUDER:1R MAX_TEMPERATURE:%.1lf USED:%u ",UUID[2],UUID[1],UUID[0],Vender,Firmware_Name,Firmware_Version,Max_Temperature,Read_Using_Time());
+		sprintf(Response_Buffer,"1 OK HELLO TYPE:EXTRUDER ID:%08X%08X%08X VENDOR:%s FIRMWARE:%s VERSION:%s EXTRUDER:1 HARDWARE_VERSION:1 MAX_TEMPERATURE:%.1lf USED:%u ",UUID[2],UUID[1],UUID[0],Vender,Firmware_Name,Firmware_Version,Max_Temperature,Read_Using_Time());
 
 	}else if(!strcmp(Command_Str, "SHOW")){
 		Show_Sensor_Msg();
@@ -61,13 +61,16 @@ void Extruder_One_Rev1_Cmd_Handler(void){
 			Set_Module_State(FAN_FAILURE);
 		
 		//response
-		sprintf(Response_Buffer,"1 OK PONG ER:%d HE:%s RT:%.1lf ",Module_State,Get_Hardware_Error_String(),Read_Temperature());
+		sprintf(Response_Buffer,"1 OK PONG ER:%d RT:%.1lf ",Module_State,Read_Temperature());
 		if(Target_Temperature<0.1)
 			sprintf(Response_Buffer,"%s%s",Response_Buffer,"TT:NAN ");
 		else
 			sprintf(Response_Buffer,"%sTT:%.1lf ",Response_Buffer,Target_Temperature);
-		sprintf(Response_Buffer,"%sFA:%d FB:%d ",Response_Buffer,Read_Inhalation_Fan_Mask_PWM(),Read_Exhalation_Fan_PWM());
-		
+        
+        if(Get_Module_State(HARDWARE_ERROR))
+            sprintf(Response_Buffer,"%sFA:%d FB:%d HE:%s ",Response_Buffer,Read_Inhalation_Fan_Mask_PWM(),Read_Exhalation_Fan_PWM(),Get_Hardware_Error_String());
+		else
+            sprintf(Response_Buffer,"%sFA:%d FB:%d ",Response_Buffer,Read_Inhalation_Fan_Mask_PWM(),Read_Exhalation_Fan_PWM());
 		//reset sensor state
 		Reset_Axis_Sensor_State();
 		//reset alarm IO

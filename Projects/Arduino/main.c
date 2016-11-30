@@ -36,6 +36,7 @@ extern volatile bool Debug_Mode;
 extern volatile bool Show_Sensor_Data;
 
 extern uint16_t NTC_ADC_Value;
+extern uint32_t NTC_ADC_Value_Sampling;
 extern float NTC_Centigrade;
 extern void Detect_Laser_Power(void);
 extern void Debounce_Laser_Power(void);
@@ -92,7 +93,8 @@ void EXTI4_15_IRQHandler(void){
 int main(){
 	volatile uint32_t LastTime=0;
 	volatile uint32_t Time_Count=0;
-	
+	uint16_t ntc_sampling_count=0;
+    
 	RCC_HSI_Configuration();//setting system clock as 48M Hz
 	
 	SysTick_Config(SystemCoreClock / 1000);//setting system tick as 1ms
@@ -235,7 +237,17 @@ int main(){
 			if(Show_Sensor_Data)
 				Show_Sensor_RawData();
 			if(ModuleMode==FLUX_ONE_EXTRUDER_MODULE || ModuleMode==FLUX_ONE_EXTRUDER_REV1_MODULE){
-				NTC_ADC_Value=Read_ADC_Value(NTC_Channel);	
+                //Attent to be starvate
+                while(ntc_sampling_count<10){
+                    NTC_ADC_Value=Read_ADC_Value(NTC_Channel);	
+                    if(NTC_ADC_Value<840){ //75 degree
+                        NTC_ADC_Value_Sampling+=NTC_ADC_Value;
+                        ntc_sampling_count++;
+                    }
+                }
+				NTC_ADC_Value=ntc_sampling_count/(ntc_sampling_count);	
+                NTC_ADC_Value_Sampling=0;
+                ntc_sampling_count=0;
 				//printf("rtc value=%d\n",NTC_ADC_Value);
                 //NTC_Centigrade=(NTC_ADC_Value-183.8)/12.87742+24.0;
 			}

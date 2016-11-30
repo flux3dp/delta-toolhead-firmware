@@ -44,12 +44,12 @@ void Laser_Cmd_Handler(void){
 		Debug_Mode=FALSE;
 		Show_Sensor_Data=FALSE;
 		Reset_Module_State(NO_HELLO);
-		sprintf(Response_Buffer,"1 OK HELLO TYPE:LASER ID:%08X%08X%08X VENDOR:%s FIRMWARE:%s VERSION:%s FOCAL_LENGTH:%.2lf USED:%u ",UUID[2],UUID[1],UUID[0],Vender,Firmware_Name,Firmware_Version,Read_Focal_Length(),Read_Using_Time());
+		sprintf(Response_Buffer,"1 OK HELLO TYPE:LASER ID:%08X%08X%08X VENDOR:%s FIRMWARE:%s VERSION:%s HARDWARE_VERSION:0 FOCAL_LENGTH:%.2lf USED:%u ",UUID[2],UUID[1],UUID[0],Vender,Firmware_Name,Firmware_Version,Read_Focal_Length(),Read_Using_Time());
 
 	}else if(!strcmp(Command_Str, "DEBUG")){
 		Debug_Mode=TRUE;
 		Reset_Module_State(NO_HELLO);
-		sprintf(Response_Buffer,"1 OK HELLO TYPE:LASER ID:%08X%08X%08X VENDOR:%s FIRMWARE:%s VERSION:%s FOCAL_LENGTH:%.2lf USED:%u ",UUID[2],UUID[1],UUID[0],Vender,Firmware_Name,Firmware_Version,Read_Focal_Length(),Read_Using_Time());
+		sprintf(Response_Buffer,"1 OK HELLO TYPE:LASER ID:%08X%08X%08X VENDOR:%s FIRMWARE:%s VERSION:%s HARDWARE_VERSION:0 FOCAL_LENGTH:%.2lf USED:%u ",UUID[2],UUID[1],UUID[0],Vender,Firmware_Name,Firmware_Version,Read_Focal_Length(),Read_Using_Time());
 
 	}else if(!strcmp(Command_Str, "SHOW")){
 		Show_Sensor_Msg();

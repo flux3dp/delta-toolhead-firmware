@@ -9,6 +9,10 @@ char Uart1_DataBuffer [CmdBufferLength] = "";
 
 Uart_BufferType CmdBuffer={Uart_Sprinter,CmdBufferLength,Uart1_DataBuffer,0,FALSE,&CmdTimeout_count };
 
+struct __FILE { int handle; /* Add whatever you need here */ };
+FILE __stdout;
+FILE __stdin;
+
 int fputc(int ch, FILE *f)
 {
   while(USART_GetFlagStatus(Uart_Sprinter, USART_FLAG_TXE) == RESET);
@@ -17,7 +21,6 @@ int fputc(int ch, FILE *f)
  
   return(ch);
 }
-
 
 void Usart1_ReadLine(void){
 

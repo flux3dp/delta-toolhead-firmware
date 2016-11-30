@@ -511,11 +511,6 @@
               <FileType>1</FileType>
               <FilePath>..\..\..\..\Libraries\Arduino\src\gpio.c</FilePath>
             </File>
-            <File>
-              <FileName>serial.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\..\..\Libraries\Arduino\src\serial.c</FilePath>
-            </File>
           </Files>
         </Group>
         <Group>
