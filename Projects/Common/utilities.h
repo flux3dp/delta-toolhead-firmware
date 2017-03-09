@@ -90,6 +90,7 @@ extern uint32_t G_tickValue;
 #define max(a, b)   Max(a, b)
 #define min(a, b)   Min(a, b)
 #define Abs(a)              (((a) <  0 ) ? -(a) : (a))
+#define round(a)            ((a < 0.0)?((int)(a - 0.5)):((int)(a + 0.5)))
 //#define abs(a)      Abs(a)
 /* exported typedef -------------------------------------------------------------------*/
 typedef enum { FAILED = 0, PASSED = !FAILED} TestStatus;

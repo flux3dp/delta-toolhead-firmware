@@ -34,7 +34,7 @@ void Module_Recognition(void){
 	}else if(ADC_Value_ID0 >= Laser_ADC_Min_Value && ADC_Value_ID0 < Extruder_One_ADC_Min_Value){
 		ModuleMode = FLUX_LASER_MODULE;
 	}else if(ADC_Value_ID0 >= Extruder_One_Rev1_ADC_Min_Value && ADC_Value_ID0 < Laser_ADC_Min_Value){
-        if(ADC_Value_ID1>4080)
+        if(ADC_Value_ID1 > Extruder_One_Rev2_ADC_Min_Value)
             ModuleMode = FLUX_ONE_EXTRUDER_REV1_MODULE;
 		else
             ModuleMode = FLUX_ONE_EXTRUDER_REV2_MODULE;

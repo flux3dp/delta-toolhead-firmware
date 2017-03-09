@@ -104,7 +104,7 @@ int main(){
 	NVIC_Configuration();//setting interrupt priority
 
 	Module_State_Initial();
-	
+    
 	Module_Recognition();//read module type
 	
 	Alarm_IO_Config();

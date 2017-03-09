@@ -17,6 +17,7 @@ static volatile uint32_t Fan_Revolution_Start=0;
 static volatile uint32_t Fan_Exh_Revolution_Start=0;
 static volatile uint32_t Fan_Exh_Last_PWM=0;
 uint32_t Fan_Mask_Start=0;
+uint32_t Ex_Fan_Mask_Start=0;
 extern ModuleMode_Type ModuleMode;
 
 void Set_Exhalation_Fan_PWM(uint8_t PWM){
@@ -25,6 +26,8 @@ void Set_Exhalation_Fan_PWM(uint8_t PWM){
 	TIM16->CCR1 = Pwm_Value;
 }
 void Set_Exhalation_Fan_PWM_Mask(uint8_t PWM){
+    if(Fan_Exh_Last_PWM!=PWM)
+        Ex_Fan_Mask_Start=millis();
 	Fan_Exh_Last_PWM=PWM;
 }
 
@@ -73,13 +76,22 @@ uint8_t Read_Inhalation_Fan_Mask_PWM(void){
 
 bool Is_Inhalation_Fan_Failed(void){
     if(millis()-Fan_Mask_Start<Fan_Mask_Time){
-        Reset_Module_State(FAN_FAILURE);
 		return FALSE;
     }
-	if(Read_Inhalation_Fan_PWM()!=Inhalation_PWM)
+	if(Read_Inhalation_Fan_PWM()!=Inhalation_PWM){
 		return TRUE;
-	else{
-		Reset_Module_State(FAN_FAILURE);
+    }else{
+		return FALSE;
+	}
+}
+
+bool Is_Exhalation_Fan_Failed(void){
+    if(millis()-Ex_Fan_Mask_Start<Fan_Mask_Time){
+		return FALSE;
+    }
+	if(Read_Exhalation_Fan_PWM()!=Fan_Exh_Last_PWM){
+		return TRUE;
+	}else{
 		return FALSE;
 	}
 }

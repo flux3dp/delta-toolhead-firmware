@@ -57,9 +57,11 @@ void Extruder_One_Rev1_Cmd_Handler(void){
 	}else if(!strcmp(Command_Str, "PING")){
 		//uint8_t Err_Sum;
 		//error check
-		if(Is_Inhalation_Fan_Failed())
-			Set_Module_State(FAN_FAILURE);
-		
+        if(Is_Inhalation_Fan_Failed() || Is_Exhalation_Fan_Failed()){
+            Set_Module_State(FAN_FAILURE);
+        }else{
+            Reset_Module_State(FAN_FAILURE);
+        }
 		//response
 		sprintf(Response_Buffer,"1 OK PONG ER:%d RT:%.1lf ",Module_State,Read_Temperature());
 		if(Target_Temperature<0.1)
@@ -120,6 +122,15 @@ void Extruder_One_Rev1_Cmd_Handler(void){
 		sprintf(Response_Buffer,"1 OK IT=%.2f NTC=%.2f ",Read_Internal_Temperature(),(NTC_ADC_Value-183.8)/12.87742+24.0);
 	}else if(!strcmp(Command_Str, "READ_TADC")){
 		sprintf(Response_Buffer,"1 OK ADC=%u ",TIM1->CCR1);
+	}else if(!strcmp(Command_Str, "READ_TADC_VAL")){
+		sprintf(Response_Buffer,"1 OK Temp_ADC=%u ",Read_ADC_Value(Temperature_Channel));
+	}else if(!strcmp(Command_Str, "READ_TEMP_FILTER")){
+		sprintf(Response_Buffer,"1 OK Temp=%.1lf ",Read_Temperature_with_filter());
+	}else if(!strcmp(Command_Str, "READ_ID")){
+        uint16_t ADC_Value_ID0,ADC_Value_ID1;
+        ADC_Value_ID0=Read_ADC_Value(ID0_Channel);
+        ADC_Value_ID1=Read_ADC_Value(ID1_Channel);
+		sprintf(Response_Buffer,"1 OK ID0=%d ID1=%d ",ADC_Value_ID0,ADC_Value_ID1);
 	}else if(!strcmp(Command_Str, "SET_TREG")){
         Command_Str = strtok(NULL, " ");
 		if(Command_Str[0]=='V' && Command_Str[1]==':'){

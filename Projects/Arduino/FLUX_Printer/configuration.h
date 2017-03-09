@@ -5,6 +5,7 @@
 #define Extruder_One_ADC_Min_Value 3212
 #define Laser_ADC_Min_Value 2409
 #define Extruder_One_Rev1_ADC_Min_Value 1945
+#define Extruder_One_Rev2_ADC_Min_Value 4000
 #define Alarm_On() GPIO_ResetBits(GPIOB,GPIO_Pin_0)
 #define Alarm_Off() GPIO_SetBits(GPIOB,GPIO_Pin_0)
 

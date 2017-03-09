@@ -14,5 +14,6 @@ uint8_t Read_Inhalation_Fan_PWM(void);
 uint8_t Read_Inhalation_Fan_Mask_PWM(void);
 uint8_t Read_Exhalation_Fan_PWM(void);
 bool Is_Inhalation_Fan_Failed(void);
+bool Is_Exhalation_Fan_Failed(void);
 void Fan_Management(void);
 
