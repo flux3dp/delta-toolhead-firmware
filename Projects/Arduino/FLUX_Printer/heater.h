@@ -19,10 +19,14 @@
 #define constrain(amt,low,high) ((amt)<(low)?(low):((amt)>(high)?(high):(amt)))
 #define K1 0.95 // Smoothing factor within the PID
 #define K2 (1.0 - K1)
-#define ADC_Sample_Times 200 // Must > 50
+#define ADC_Sample_Times 25
+#define Kalman_Process_Time 43
 #define Exhalation_Fan_Close_Temp 40.0
 float	Read_Temperature(void);//return heater temperature
 float   Read_Temperature_with_filter(void);
+float Read_Temperature_times(int sampling_times);
+float Read_Temperature_times_with_filter(int sampling_times);
+void Temperature_Process_With_Kalman(void);
 void	Set_Heater_PWM(uint8_t PWM);//set heater pwm 0~255
 uint8_t Get_Pid_Output(void);
 void	PID_Control(void);

@@ -27,6 +27,8 @@ extern volatile bool Show_Sensor_Data;
 extern Kalman_Data_Struct Kal_X,Kal_Y;
 extern float Degree_Now;
 extern uint16_t NTC_ADC_Value;
+extern float Temperature_Estimate;
+
 void Extruder_One_Rev2_Cmd_Handler(void){
 	char * Command_Str;
 		
@@ -64,7 +66,7 @@ void Extruder_One_Rev2_Cmd_Handler(void){
         }
 		
 		//response
-		sprintf(Response_Buffer,"1 OK PONG ER:%d RT:%.1lf ",Module_State,Read_Temperature());
+		sprintf(Response_Buffer,"1 OK PONG ER:%d RT:%.1lf ",Module_State,Temperature_Estimate);
 		if(Target_Temperature<0.1)
 			sprintf(Response_Buffer,"%s%s",Response_Buffer,"TT:NAN ");
 		else
@@ -125,13 +127,29 @@ void Extruder_One_Rev2_Cmd_Handler(void){
 		sprintf(Response_Buffer,"1 OK ADC=%u ",TIM1->CCR1);
 	}else if(!strcmp(Command_Str, "READ_TADC_VAL")){
 		sprintf(Response_Buffer,"1 OK Temp_ADC=%u ",Read_ADC_Value(Temperature_Channel));
-	}else if(!strcmp(Command_Str, "READ_TEMP_FILTER")){
-		sprintf(Response_Buffer,"1 OK Temp=%.1lf ",Read_Temperature_with_filter());
+	}else if(!strcmp(Command_Str, "READ_TEMP_TIMES")){
+        Int_Temp=0;
+        Command_Str = strtok(NULL, " ");
+		if(Command_Str[0]=='S' && Command_Str[1]==':' && IsNumber(&Command_Str[2]))
+            Int_Temp = atoi(&Command_Str[2]);
+        if(Int_Temp<=0)
+            Int_Temp=1;
+		sprintf(Response_Buffer,"1 OK Temp=%.1lf ",Read_Temperature_times(Int_Temp));
+	}else if(!strcmp(Command_Str, "READ_TEMP_TIMES_F")){
+        Int_Temp=0;
+        Command_Str = strtok(NULL, " ");
+		if(Command_Str[0]=='S' && Command_Str[1]==':' && IsNumber(&Command_Str[2]))
+            Int_Temp = atoi(&Command_Str[2]);
+        if(Int_Temp<=0)
+            Int_Temp=1;
+		sprintf(Response_Buffer,"1 OK Temp=%.1lf ",Read_Temperature_times_with_filter(Int_Temp));
 	}else if(!strcmp(Command_Str, "READ_ID")){
         uint16_t ADC_Value_ID0,ADC_Value_ID1;
         ADC_Value_ID0=Read_ADC_Value(ID0_Channel);
         ADC_Value_ID1=Read_ADC_Value(ID1_Channel);
 		sprintf(Response_Buffer,"1 OK ID0=%d ID1=%d ",ADC_Value_ID0,ADC_Value_ID1);
+	}else if(!strcmp(Command_Str, "READ_KAL_TEMP")){
+		sprintf(Response_Buffer,"1 OK RT=%.1lf KT=%.1lf ",Read_Temperature(),Temperature_Estimate);
 	}else if(!strcmp(Command_Str, "SET_TREG")){
         Command_Str = strtok(NULL, " ");
 		if(Command_Str[0]=='V' && Command_Str[1]==':'){

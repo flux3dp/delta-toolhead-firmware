@@ -140,8 +140,8 @@ int main(){
 			#ifdef Function_Test
 				Reset_Module_State(NO_HELLO);
 				Debug_Mode=TRUE;
-				Set_Inhalation_Fan_PWM(255);
-				Set_Temperature(200);//testing
+				//Set_Inhalation_Fan_PWM(255);
+				//Set_Temperature(70);//testing
 			#endif
 		
 			break;
@@ -219,6 +219,7 @@ int main(){
             case FLUX_ONE_EXTRUDER_MODULE:
             case FLUX_ONE_EXTRUDER_REV1_MODULE:
             case FLUX_ONE_EXTRUDER_REV2_MODULE:
+                Temperature_Process_With_Kalman();
                 Temperature_Manage();
                 PID_Handler(); 
                 Fan_Management();

@@ -13,6 +13,7 @@ static bool pid_reset = TRUE;
 
 static uint32_t T_Manage_Last_Time=0;
 static uint32_t T_Manage_Mask_Time=0;
+static uint32_t T_Kalman_Last_Time=0;
 static float Last_Temp=0;
 
 uint16_t NTC_ADC_Value=0;
@@ -49,37 +50,53 @@ float Current_Temperature;
 //For new PID method 
 float lastInput=0;
 
+/* Variables of kalman filter */
+float varVolt = 1.12184278324081E-05;  // variance determined using excel and reading samples of raw sensor data
+float varProcess = 1e-8;
+float Pc = 0.0;
+float G = 0.0;
+float P = 1.0;
+float Xp = 0.0;
+float Zp = 0.0;
+float Temperature_Estimate = 0.0;
+
 extern ModuleMode_Type ModuleMode;
+
+float Read_Temperature_raw_data(void){
+    uint32_t ADC_Value=0;
+	uint8_t i;
+	
+	for(i=0;i<ADC_Sample_Times;i++){
+		ADC_Value += Read_ADC_Value(Temperature_Channel);
+		//Avg_Value += Read_ADC_Value(Temperature_Channel);
+	}
+	
+	ADC_Value = round((float)ADC_Value/ADC_Sample_Times);
+    
+	if(ADC_Value >= 0 && ADC_Value <= 4095)
+        switch(ModuleMode){
+			case FLUX_ONE_EXTRUDER_MODULE:
+                return ((float)Temperature_Mapping[ADC_Value])/10;
+            case FLUX_ONE_EXTRUDER_REV1_MODULE:
+            case FLUX_ONE_EXTRUDER_REV2_MODULE:
+                return ((float)Temperature_Mapping_Reverse(ADC_Value))/10;
+            default:
+                return 999.9;
+            
+        }
+	else
+		return 999.9;
+}
 
 //return heater temperature
 float Read_Temperature(void){
+    //return Temperature_Estimate;
+    //return Read_Temperature_raw_data();
     return Read_Temperature_with_filter();
-//	uint32_t ADC_Value=0;
-//	uint8_t i;
-//	
-//	for(i=0;i<ADC_Sample_Times;i++){
-//		ADC_Value += Read_ADC_Value(Temperature_Channel);
-//		//Avg_Value += Read_ADC_Value(Temperature_Channel);
-//	}
-//	
-//	ADC_Value = round((float)ADC_Value/ADC_Sample_Times);
-//    
-//	if(ADC_Value >= 0 && ADC_Value <= 4095)
-//        switch(ModuleMode){
-//			case FLUX_ONE_EXTRUDER_MODULE:
-//                return ((float)Temperature_Mapping[ADC_Value])/10;
-//            case FLUX_ONE_EXTRUDER_REV1_MODULE:
-//            case FLUX_ONE_EXTRUDER_REV2_MODULE:
-//                return ((float)Temperature_Mapping_Reverse(ADC_Value))/10;
-//            default:
-//                return 999.9;
-//            
-//        }
-//	else
-//		return 999.9;
 }
 
 //return heater temperature filter by 1 Standard Deviation interval
+/* Sampling 100 times of time comsuming is about 6~7 ms */
 float Read_Temperature_with_filter(void){
     /* 0 to 4095 */
 	uint32_t ADC_Value_Sum=0;
@@ -95,7 +112,7 @@ float Read_Temperature_with_filter(void){
 	ADC_Avg = (float)ADC_Value_Sum/ADC_Sample_Times;
     
     ADC_Value_Sum=0;
-    for(i=0;i<50;i++){
+    for(i=0;i<25;i++){
         uint16_t adc_temp = Read_ADC_Value(Temperature_Channel);
         ADC_Avg += (float)adc_temp/ADC_Sample_Times;
         ADC_Avg -= (float)ADC_Val[i]/ADC_Sample_Times;
@@ -125,6 +142,77 @@ float Read_Temperature_with_filter(void){
 		return 999.9;
 }
 
+float Read_Temperature_times(int sampling_times){
+	uint32_t ADC_Value=0;
+	uint8_t i;
+	
+	for(i=0;i<sampling_times;i++){
+		ADC_Value += Read_ADC_Value(Temperature_Channel);
+		//Avg_Value += Read_ADC_Value(Temperature_Channel);
+	}
+	
+	ADC_Value = round((float)ADC_Value/sampling_times);
+    
+	if(ADC_Value >= 0 && ADC_Value <= 4095)
+        switch(ModuleMode){
+			case FLUX_ONE_EXTRUDER_MODULE:
+                return ((float)Temperature_Mapping[ADC_Value])/10;
+            case FLUX_ONE_EXTRUDER_REV1_MODULE:
+            case FLUX_ONE_EXTRUDER_REV2_MODULE:
+                return ((float)Temperature_Mapping_Reverse(ADC_Value))/10;
+            default:
+                return 999.9;
+            
+        }
+	else
+		return 999.9;
+}
+
+float Read_Temperature_times_with_filter(int sampling_times){
+    uint32_t ADC_Value_Sum=0;
+    double ADC_Avg=0;
+	uint8_t i,count=0;
+	uint16_t ADC_Val[200],ADC_Value;
+	for(i=0;i<sampling_times;i++){
+        uint16_t adc_temp = Read_ADC_Value(Temperature_Channel);
+        ADC_Val[i] = adc_temp;
+		ADC_Value_Sum += adc_temp;
+	}
+    
+	ADC_Avg = (float)ADC_Value_Sum/sampling_times;
+    
+    ADC_Value_Sum=0;
+    for(i=0;i<50;i++){
+        uint16_t adc_temp = Read_ADC_Value(Temperature_Channel);
+        ADC_Avg += (float)adc_temp/sampling_times;
+        ADC_Avg -= (float)ADC_Val[i]/sampling_times;
+        if(adc_temp <= (ADC_Avg+4) || adc_temp >= (ADC_Avg-4)){
+            ADC_Value_Sum += adc_temp;
+            count++;
+        }
+    }
+    
+    if(count<=0)
+        ADC_Value = round(ADC_Avg);
+    else
+        ADC_Value = round((float)ADC_Value_Sum/count);
+
+	if(ADC_Value >= 0 && ADC_Value <= 4095)
+        switch(ModuleMode){
+			case FLUX_ONE_EXTRUDER_MODULE:
+                return ((float)Temperature_Mapping[ADC_Value])/10;
+            case FLUX_ONE_EXTRUDER_REV1_MODULE:
+            case FLUX_ONE_EXTRUDER_REV2_MODULE:
+                return ((float)Temperature_Mapping_Reverse(ADC_Value))/10;
+            default:
+                return 999.9;
+            
+        }
+	else
+		return 999.9;
+}
+
+
 void PID_Handler(void){
 	float RT=1.0;
 	Auto_PID_Completed=TRUE;
@@ -140,7 +228,14 @@ void PID_Handler(void){
 		Set_Exhalation_Fan_PWM_Mask(255);//set fan
 	}
 	
-	if(RT<0.001 || RT>900.0 || RT > Max_Temperature+10 || NTC_ADC_Value>583 || Get_Hardware_Error_Code(AUTO_HEAT)){//Thermal res is short or open,583=55C 454=45C 416=42C
+//    THERMAL_SHORT       =1024,
+//    THERMAL_OPEN        =2048,
+//    OVER_TEMPERATURE    =4096,
+//    NTC_OVER_TEMPERATURE=8192,
+//    AUTO_HEAT           =16384,
+//    CANNOT_HEAT         =32768,
+    
+	if(RT<0.001 || RT>900.0 || RT > Max_Temperature+10 || NTC_ADC_Value>583 || Get_Hardware_Error_Code(AUTO_HEAT) || Get_Hardware_Error_Code(CANNOT_HEAT)){//Thermal res is short or open,583=55C 454=45C 416=42C
 		Set_Heater_PWM(0);
 		Set_Module_State(HARDWARE_ERROR);
         if(RT<0.001)
@@ -186,8 +281,12 @@ void Set_Temperature(float setpoint){
 	Target_Temperature=setpoint;
 	if(setpoint>0.1)
 		Set_Exhalation_Fan_PWM(255);
+    // Temperature management
     Last_Temp=0;
     T_Manage_Mask_Time=millis();
+    Reset_Module_State(HEATER_FAILURE);
+    Reset_Hardware_Error_Code(AUTO_HEAT);
+    Reset_Hardware_Error_Code(CANNOT_HEAT);
 }
 
 //return 0~255
@@ -251,6 +350,23 @@ void Disable_All_Heater(void){
 	Set_Heater_PWM(0);
 }
 
+void Temperature_Process_With_Kalman(void){
+    float temperature;
+    if(millis()-T_Kalman_Last_Time<Kalman_Process_Time)
+        return;
+    T_Kalman_Last_Time=millis();
+    
+    temperature = Read_Temperature_with_filter();//Read_Temperature_raw_data();
+    // kalman process
+    Pc = P + varProcess;
+    G = Pc / (Pc + varVolt);    // kalman gain
+    P = (1 - G)*Pc;
+    Xp = Temperature_Estimate;
+    Zp = Xp;
+    Temperature_Estimate = G*(temperature - Zp) + Xp;   // the kalman estimate of the sensor voltage
+}
+
+// 
 void Temperature_Manage(void){
     float Current_Temp;
     float Temp_Error;
@@ -262,13 +378,13 @@ void Temperature_Manage(void){
     if(interval>4000){
         T_Manage_Last_Time=millis();
         if(Last_Temp<0.01){
-            Last_Temp=Read_Temperature();
+            Last_Temp=Temperature_Estimate;
             return;
         }
-        Current_Temp=Read_Temperature();
+        Current_Temp=Temperature_Estimate;
         Temp_Error=Target_Temperature-Current_Temp;
-        //⊿砞放but放ど 2/4=0.5 /S
-        if(Target_Temperature<0.01 && (Current_Temp-Last_Temp)>2){
+        //⊿砞放but放ど 3.2/4=0.8 /S
+        if(Target_Temperature<0.01 && (Current_Temp-Last_Temp)>3.2){
             //Real temperature is rising but heater was closed.
             //printf("CurrT=%.2f\tLastT=%.2f\n",Current_Temp,Last_Temp);
             if(!Get_Module_State(HARDWARE_ERROR)){
@@ -290,7 +406,6 @@ void Temperature_Manage(void){
             Reset_Hardware_Error_Code(AUTO_HEAT);
             Reset_Hardware_Error_Code(CANNOT_HEAT);
         }
-        
         //printf("%.2f C/S\n",(Current_Temp-Last_Temp)/interval*1000);
         Last_Temp=Current_Temp;//Read_Temperature();//(Read_ADC_Value(NTC_Channel)-183.8)/12.87742+24.0;
     }

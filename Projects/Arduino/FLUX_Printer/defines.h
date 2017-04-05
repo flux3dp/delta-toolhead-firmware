@@ -1,6 +1,6 @@
-#define Firmware_Version	"1.2.14"
-#define Firmware_Name		"EXCALIBUR"//"sampling_1"//
-#define Firmware_Date       "20170308"
+#define Firmware_Version	"1.2.17"
+#define Firmware_Name		"EXCALIBUR"//"gyro_test"//
+#define Firmware_Date       "20170405"
 #define STM32F0_UUID ((uint32_t *)0x1FFFF7AC)
 #define Enable_IWDG 1
 #define Enable_Debug_Msg 0
@@ -48,4 +48,7 @@ Version history
 1.2.12  20170217    Exhalation fan error bug fixed.
 1.2.13  20170302    Fix temperature managment process.
 1.2.14  20170308    Improve PID control process of heater.
+1.2.15  20170313    Add temperature filter to improve heater realiability.
+1.2.16  20170314    Add kalman filter to keep heater temperature stable.
+1.2.17  20170328    1.Temperature management using kalman estimated temperature. 2.Fixed error code bug.
 */

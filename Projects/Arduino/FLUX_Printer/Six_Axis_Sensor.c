@@ -164,6 +164,7 @@ Six_Axis_Sensor_State_Type Six_Axis_Sensor_Initial(void)
 	return Mems_Initial_Failed;
 }	
 
+/* return mg or (degree/1000)/(s^2) aka mdps */
 float Read_Axis_Value(Six_Axis_Value_Type axis){
 	short Axis_Data=0,i;
 	float Axis_Value=0.0;

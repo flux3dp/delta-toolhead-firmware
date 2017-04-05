@@ -42,7 +42,6 @@ void Module_Recognition(void){
 		//no such module
 		ModuleMode = Unknow;
 		Set_Module_State(UNKNOW_MODULE);
-		//Module_State|=UNKNOW_MODULE;
 	}
 }
 
