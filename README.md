@@ -38,6 +38,25 @@
 
 1.2.5   20160907    Add new hardware extruder one R2 & self-reset alarm.
 
+1.2.6   20160929    Revise: if HARDWARE_ERROR has not appeared , it would not response "HE: " with PING command.
+
+1.2.7   20161006    NTC sampling.
+
+1.2.8   20161123    Revise hello command messages for new extruder hardware.
+
+1.2.9   20170123    Revise extruder command timeout 300s to 30s
+
+1.2.10  20170216    Add exhalation fan error code.
+
+1.2.11  20170217    Extruder_One_Rev2_ADC_Min_Value 4080->4000.
+
+1.2.12  20170217    Exhalation fan error bug fixed.
+
+1.2.13  20170302    Fix temperature managment process.
+
+1.2.14  20170308    Improve PID control process of heater.
+
+
 **Hardware version**
 
 ID1    ID0
